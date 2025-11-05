@@ -207,14 +207,6 @@ data: { labels: ['Violent Crime','Property Crime','Disorder Calls'], datasets: [
 options: { responsive:true, maintainAspectRatio:false, animation:{duration:500}, scales:{y:{beginAtZero:true}} }
 });
 
-function updateAll() {
-sliders.forEach(s => labels[s.id].innerText = s.value + '%');
-const impacts = getImpactScores();
-chart.data.datasets[0].data = [impacts.violent, impacts.property, impacts.disorder];
-chart.update();
-updateSummary(impacts);
-}
-
 function getImpactScores() {
 const v = Object.fromEntries([...sliders].map(s => [s.id, +s.value]));
 const violent = baseData.violent * (1 - ((v.staffing*0.002 + v.cso*0.0015 + v.mental*0.001 + v.tech*0.001 - v.liquor*0.0008)/100));
@@ -223,13 +215,34 @@ const disorder = baseData.disorder * (1 - ((v.cso*0.0018 + v.youth*0.0015 + v.li
 return { violent, property, disorder };
 }
 
+function getBarColors(impacts) {
+  const colors = [];
+  const keys = ['violent','property','disorder'];
+  keys.forEach(key => {
+    const reduction = (1 - impacts[key]/baseData[key]);
+    if(reduction >= 0.3) colors.push('#00c853'); // green
+    else if(reduction >= 0.1) colors.push('#ffd600'); // yellow
+    else colors.push('#ff3d00'); // red
+  });
+  return colors;
+}
+
+function updateAll() {
+  sliders.forEach(s => labels[s.id].innerText = s.value + '%');
+  const impacts = getImpactScores();
+  chart.data.datasets[0].data = [impacts.violent, impacts.property, impacts.disorder];
+  chart.data.datasets[0].backgroundColor = getBarColors(impacts);
+  chart.update();
+  updateSummary(impacts);
+}
+
 function updateSummary(impacts) {
-const baseSum = baseData.violent + baseData.property + baseData.disorder;
-const newSum = impacts.violent + impacts.property + impacts.disorder;
-const reduction = ((1 - newSum/baseSum) * 100).toFixed(2);
-document.getElementById('impactScore').innerText = reduction + '%';
-const totalCost = sliders.length*25000 + Math.random()*50000;
-document.getElementById('totalCost').innerText = '$' + totalCost.toLocaleString();
+  const baseSum = baseData.violent + baseData.property + baseData.disorder;
+  const newSum = impacts.violent + impacts.property + impacts.disorder;
+  const reduction = ((1 - newSum/baseSum) * 100).toFixed(2);
+  document.getElementById('impactScore').innerText = reduction + '%';
+  const totalCost = sliders.length*25000 + Math.random()*50000;
+  document.getElementById('totalCost').innerText = '$' + totalCost.toLocaleString();
 }
 
 document.getElementById('implementBtn').addEventListener('click', () => {
