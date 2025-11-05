@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Rochester Safe Communities Simulator</title>
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- jsPDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <div class="brand-badge">R</div>
+      <div class="brand-text">
+        <div class="title">Rochester Safe Communities Simulator</div>
+        <div class="subtitle">Data-driven scenarios • Research-backed proposals</div>
+      </div>
+    </div>
+    <nav class="top-right">
+      <div class="meta">Sample data: Rochester-like • Replace with MN BCA/Local CSV</div>
+    </nav>
+  </header>
+
+  <main class="layout">
+    <!-- LEFT: Controls -->
+    <aside class="panel controls" aria-label="Intervention controls">
+      <h3>Intervention Controls</h3>
+      <p class="muted">Adjust sliders to simulate intervention intensity. Values are scaled and feed the impact model.</p>
+
+      <div class="form-grid">
+        <label>Hot-spot patrol intensity <span class="small">(% of baseline)</span>
+          <input id="hot_spot_patrol" type="range" min="0" max="200" value="100">
+        </label>
+        <div class="value" id="hot_spot_patrol_val">100%</div>
+
+        <label>Focused deterrence coverage <span class="small">(% of high-risk)</span>
+          <input id="focused_deterrence" type="range" min="0" max="100" value="0">
+        </label>
+        <div class="value" id="focused_deterrence_val">0%</div>
+
+        <label>Problem-oriented projects <span class="small">(active)</span>
+          <input id="pop_projects" type="range" min="0" max="10" value="0">
+        </label>
+        <div class="value" id="pop_projects_val">0</div>
+
+        <label>Procedural justice training <span class="small">(% officers)</span>
+          <input id="procedural_training" type="range" min="0" max="100" value="0">
+        </label>
+        <div class="value" id="procedural_training_val">0%</div>
+
+        <label>Street lighting improvement <span class="small">(% area)</span>
+          <input id="street_lighting" type="range" min="0" max="100" value="0">
+        </label>
+        <div class="value" id="street_lighting_val">0%</div>
+
+        <label>Vacant lot greening <span class="small">(% area)</span>
+          <input id="vacant_lot_greening" type="range" min="0" max="100" value="0">
+        </label>
+        <div class="value" id="vacant_lot_greening_val">0%</div>
+
+        <label>Liquor store reduction <span class="small">(% fewer)</span>
+          <input id="liquor_store_reduction" type="range" min="0" max="50" value="0">
+        </label>
+        <div class="value" id="liquor_store_reduction_val">0%</div>
+
+        <label>Food store access change <span class="small">(% change)</span>
+          <input id="food_store_delta" type="range" min="-50" max="50" value="0">
+        </label>
+        <div class="value" id="food_store_delta_val">0%</div>
+
+        <label>Sworn staffing (FTE)</label>
+          <input id="staffing" type="range" min="120" max="200" value="150">
+        <div class="value" id="staffing_val">150</div>
+
+        <label>CSO expansion <span class="small">(% of baseline)</span>
+          <input id="csos" type="range" min="0" max="200" value="100">
+        </label>
+        <div class="value" id="csos_val">100%</div>
+      </div>
+
+      <div class="control-actions">
+        <button id="resetBtn" class="btn ghost">Reset</button>
+      </div>
+    </aside>
+
+    <!-- CENTER: Charts & map -->
+    <section class="panel center" aria-label="Visualizations">
+      <div class="top-row">
+        <div class="card kpi">
+          <div class="kpi-title">Projected Violent Crime</div>
+          <div class="kpi-value" id="violentChange">0.0%</div>
+          <div class="kpi-sub">Annual % change vs baseline</div>
+        </div>
+
+        <div class="card kpi">
+          <div class="kpi-title">Projected Property Crime</div>
+          <div class="kpi-value" id="propertyChange">0.0%</div>
+          <div class="kpi-sub">Annual % change vs baseline</div>
+        </div>
+
+        <div class="card kpi">
+          <div class="kpi-title">Estimated crimes prevented / yr</div>
+          <div class="kpi-value" id="crimesPrevented">0</div>
+          <div class="kpi-sub">Violent + property</div>
+        </div>
+
+        <div class="card kpi">
+          <div class="kpi-title">Estimated annual cost</div>
+          <div class="kpi-value" id="estimatedCost">$0</div>
+          <div class="kpi-sub">Budget estimate</div>
+        </div>
+      </div>
+
+      <div class="viz-row">
+        <div class="card wide">
+          <div class="viz-header">
+            <h4 class="viz-title">5-Year Projection</h4>
+            <div class="viz-sub muted">Projected incidents under current scenario</div>
+          </div>
+          <canvas id="projectionChart"></canvas>
+        </div>
+
+        <div class="card narrow">
+          <h4>Baseline</h4>
+          <table class="baseline-table">
+            <tr><td>Population</td><td id="baselinePop">—</td></tr>
+            <tr><td>Violent incidents / yr</td><td id="baselineViolent">—</td></tr>
+            <tr><td>Property incidents / yr</td><td id="baselineProperty">—</td></tr>
+          </table>
+          <div style="height:18px"></div>
+          <h4>Key citations</h4>
+          <ul class="citations">
+            <li>Braga et al. — Hot spots policing</li>
+            <li>Braga & Weisburd — Focused deterrence</li>
+            <li>Welsh & Farrington — Lighting</li>
+            <li>Branas et al. — Greening</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT: proposal & summary -->
+    <aside class="panel actions" aria-label="Proposal & actions">
+      <div class="card">
+        <h3>Scenario Summary</h3>
+        <div class="summary-text muted" id="scenarioSummary">Adjust sliders to build a scenario.</div>
+      </div>
+
+      <div class="card">
+        <h3>Implementation</h3>
+        <p class="muted">When ready, generate a concise PDF proposal with timeline, budget, and citations — ready for the Mayor or funder.</p>
+        <div class="action-cta">
+          <button id="implementBtn" class="btn primary">Implement & Generate PDF</button>
+          <button id="downloadJson" class="btn ghost">Download Scenario JSON</button>
+        </div>
+      </div>
+
+      <div class="card small">
+        <h4>Notes & Ethics</h4>
+        <p class="muted small">Consider equity impacts — enforcement actions can disproportionately affect communities. Include community partners in design and evaluation.</p>
+      </div>
+    </aside>
+  </main>
+
+  <footer class="site-footer">
+    <div>© <span id="year"></span> Rochester Safe Communities Simulator • Built for evidence-to-action</div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
