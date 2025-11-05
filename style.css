@@ -1,0 +1,101 @@
+:root{
+  --navy:#0B3D91;
+  --deep:#003366;
+  --gold:#D4AF37;
+  --muted:#6b7280;
+  --bg:#f4f7fb;
+  --card:#ffffff;
+  --glass: rgba(255,255,255,0.7);
+  --radius:12px;
+  --shadow: 0 8px 24px rgba(12,24,60,0.08);
+  --accent-grad: linear-gradient(90deg,var(--navy),var(--deep));
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+  background: radial-gradient(circle at 10% 10%, #f7f9ff, var(--bg));
+  color:#05203a;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+.site-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:18px 28px;
+  background:var(--accent-grad);
+  color:white;
+  box-shadow: 0 6px 18px rgba(3,10,40,0.12);
+}
+.brand{display:flex;gap:14px;align-items:center}
+.brand-badge{
+  width:56px;height:56px;border-radius:10px;background:var(--gold);display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--deep);font-size:20px;box-shadow:0 4px 14px rgba(11,61,145,0.12)
+}
+.title{font-weight:700;font-size:18px}
+.subtitle{font-size:12px;color:rgba(255,255,255,0.9)}
+
+.top-right .meta{font-size:13px;opacity:0.9}
+
+.layout{
+  max-width:1200px;
+  margin:22px auto;
+  padding:12px;
+  display:grid;
+  grid-template-columns: 320px 1fr 320px;
+  gap:18px;
+}
+
+/* Responsive */
+@media (max-width:1100px){ .layout{ grid-template-columns: 1fr; padding:12px } .panel{ width:auto !important } }
+
+.panel{ background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); padding:18px; }
+
+/* Controls */
+.controls h3{ margin-top:0; color:var(--navy) }
+.muted{ color:var(--muted); font-size:13px; }
+.form-grid{ display:grid; grid-template-columns: 1fr 64px; gap:10px 12px; align-items:center; margin-top:12px; }
+label{ font-weight:600; font-size:14px; color:#05203a; }
+label .small{ display:block; font-weight:400; font-size:12px; color:var(--muted); margin-top:4px; }
+input[type=range]{ width:100%; margin-top:8px; -webkit-appearance:none; height:8px; border-radius:8px; background: linear-gradient(90deg,#dfe9ff,#f1f7ff); outline:none; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:18px;height:18px;border-radius:50%;background:var(--navy);border:3px solid white;box-shadow:0 4px 10px rgba(11,61,145,0.18) }
+.value{ font-weight:700; color:var(--deep); text-align:right; font-size:14px; }
+
+/* Controls actions */
+.control-actions{ margin-top:14px; display:flex; gap:8px; }
+.btn{ padding:10px 14px; border-radius:10px; font-weight:700; border:none; cursor:pointer; }
+.btn.primary{ background:var(--navy); color:white; box-shadow: 0 8px 18px rgba(11,61,145,0.14) }
+.btn.ghost{ background:transparent; color:var(--navy); border:1px solid rgba(11,61,145,0.08) }
+
+/* Center */
+.top-row{ display:flex; gap:12px; margin-bottom:12px; }
+.kpi{ flex:1; padding:12px; border-radius:10px; background: linear-gradient(180deg,#fff,#fbfdff); }
+.kpi-title{ font-size:13px; color:var(--muted); margin-bottom:6px; }
+.kpi-value{ font-size:22px; font-weight:800; color:var(--navy); }
+.kpi-sub{ font-size:12px; color:var(--muted); margin-top:6px; }
+
+.viz-row{ display:flex; gap:12px; }
+.card.wide{ flex:2; padding:16px; min-height:320px }
+.card.narrow{ flex:0.9; padding:16px; min-height:320px }
+
+.viz-header{ display:flex; justify-content:space-between; align-items:center; margin-bottom:6px }
+.viz-title{ margin:0; font-weight:700; color:var(--deep) }
+.viz-sub{ font-size:12px; color:var(--muted) }
+
+.baseline-table{ width:100%; margin-top:8px; border-collapse:collapse; font-size:14px }
+.baseline-table td{ padding:8px 6px; border-bottom:1px solid #f2f6fb }
+
+/* RIGHT */
+.actions .action-cta{ display:flex; gap:8px; margin-top:12px; }
+.card.small{ padding:12px; font-size:13px }
+
+/* Footer */
+.site-footer{ margin-top:16px; padding:14px; text-align:center; color:var(--muted); font-size:13px }
+
+/* Citations */
+.citations{ padding-left:18px; color:var(--muted); font-size:13px; margin-top:8px }
+
+/* small */
+.small{ font-size:12px; color:var(--muted) }
