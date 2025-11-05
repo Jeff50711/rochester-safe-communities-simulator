@@ -31,4 +31,200 @@
       padding: 1.5rem 2rem;
       display: flex;
       justify-content: space-between;
-      align-items: cen
+      align-items: center;
+      flex-wrap: wrap;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+    header h1 {
+      margin: 0;
+      font-size: 1.8rem;
+      color: var(--gold);
+    }
+    .summary {
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+    .summary-item {
+      text-align: center;
+    }
+    .summary-item span {
+      display: block;
+      font-weight: 700;
+      font-size: 1.3rem;
+      color: var(--gold);
+    }
+    main {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      width: 95%;
+      max-width: 1200px;
+      margin: 2rem auto;
+    }
+    section {
+      background-color: var(--bg-card);
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    }
+    h2 {
+      color: var(--teal);
+      margin-top: 0;
+      margin-bottom: 1rem;
+    }
+    .slider-group {
+      margin-bottom: 1rem;
+    }
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--gold);
+    }
+    button {
+      background: var(--gold);
+      color: var(--navy);
+      font-weight: 600;
+      border: none;
+      padding: 0.8rem 1.4rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      width: 100%;
+      transition: all 0.3s ease;
+    }
+    button:hover {
+      background: #e0c34a;
+    }
+    #impactChart {
+      max-height: 280px;
+    }
+    footer {
+      width: 100%;
+      background: var(--navy);
+      color: #ffffff;
+      text-align: center;
+      padding: 1rem 0;
+      margin-top: auto;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Rochester Police Tech Dashboard</h1>
+    <div class="summary">
+      <div class="summary-item">
+        <span id="totalCost">$0</span>
+        <small>Estimated Cost</small>
+      </div>
+      <div class="summary-item">
+        <span id="impactScore">0%</span>
+        <small>Projected Crime Reduction</small>
+      </div>
+    </div>
+  </header>
+  <main>
+    <section id="controls">
+      <h2>Intervention Controls</h2>
+      <div class="slider-group"><label>Patrol Staffing: <span id="staffingVal">50%</span></label><input type="range" id="staffing" min="0" max="100" value="50"></div>
+      <div class="slider-group"><label>Community Service Officers: <span id="csoVal">50%</span></label><input type="range" id="cso" min="0" max="100" value="50"></div>
+      <div class="slider-group"><label>Street Lighting: <span id="lightingVal">50%</span></label><input type="range" id="lighting" min="0" max="100" value="50"></div>
+      <div class="slider-group"><label>Liquor Store Density: <span id="liquorVal">50%</span></label><input type="range" id="liquor" min="0" max="100" value="50"></div>
+      <div class="slider-group"><label>Access to Fresh Food: <span id="foodVal">50%</span></label><input type="range" id="food" min="0" max="100" value="50"></div>
+      <div class="slider-group"><label>Youth Outreach Programs: <span id="youthVal">50%</span></label><input type="range" id="youth" min="0" max="100" value="50"></div>
+      <div class="slider-group"><label>Mental Health Teams: <span id="mentalVal">50%</span></label><input type="range" id="mental" min="0" max="100" value="50"></div>
+      <div class="slider-group"><label>Technology (Cameras/Drones): <span id="techVal">50%</span></label><input type="range" id="tech" min="0" max="100" value="50"></div>
+      <button id="implementBtn">Generate Proposal PDF</button>
+    </section>
+    <section id="results">
+      <h2>Projected Crime Impact (Rochester, MN)</h2>
+      <canvas id="impactChart"></canvas>
+    </section>
+  </main>
+  <footer>
+    <p>© 2025 Rochester Police Department | Data-Informed Policing Dashboard</p>
+  </footer>
+
+  <script>
+    // Baseline Rochester data
+    const baseData = { violent: 980, property: 2263, disorder: 880 };
+    const sliders = document.querySelectorAll("input[type='range']");
+    const labels = {
+      staffing: document.getElementById("staffingVal"),
+      cso: document.getElementById("csoVal"),
+      lighting: document.getElementById("lightingVal"),
+      liquor: document.getElementById("liquorVal"),
+      food: document.getElementById("foodVal"),
+      youth: document.getElementById("youthVal"),
+      mental: document.getElementById("mentalVal"),
+      tech: document.getElementById("techVal"),
+    };
+
+    sliders.forEach(s => s.addEventListener('input', updateAll));
+
+    const ctx = document.getElementById('impactChart').getContext('2d');
+    let chart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Violent Crime', 'Property Crime', 'Disorder Calls'],
+        datasets: [{
+          label: 'Projected Incidents per Year',
+          data: [baseData.violent, baseData.property, baseData.disorder],
+          backgroundColor: ['#d4af37','#00a6a6','#7a99c0']
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: { y: { beginAtZero: true } }
+      }
+    });
+
+    function updateAll() {
+      sliders.forEach(s => labels[s.id].innerText = s.value + '%');
+      const impacts = getImpactScores();
+      chart.data.datasets[0].data = [impacts.violent, impacts.property, impacts.disorder];
+      chart.update();
+      updateSummary(impacts);
+    }
+
+    function getImpactScores() {
+      const v = Object.fromEntries([...sliders].map(s => [s.id, +s.value]));
+      const violent = baseData.violent * (1 - ((v.staffing*0.002 + v.cso*0.0015 + v.mental*0.001 + v.tech*0.001 - v.liquor*0.0008)/100));
+      const property = baseData.property * (1 - ((v.staffing*0.001 + v.lighting*0.002 + v.food*0.001 + v.tech*0.001 - v.liquor*0.0008)/100));
+      const disorder = baseData.disorder * (1 - ((v.cso*0.0018 + v.youth*0.0015 + v.lighting*0.001 - v.liquor*0.0009)/100));
+      return { violent, property, disorder };
+    }
+
+    function updateSummary(impacts) {
+      const baseSum = baseData.violent + baseData.property + baseData.disorder;
+      const newSum = impacts.violent + impacts.property + impacts.disorder;
+      const reduction = ((1 - newSum/baseSum) * 100).toFixed(2);
+      document.getElementById('impactScore').innerText = reduction + '%';
+
+      const totalCost = sliders.length * 25000 + Math.random()*50000;
+      document.getElementById('totalCost').innerText = '$' + totalCost.toLocaleString();
+    }
+
+    document.getElementById('implementBtn').addEventListener('click', () => {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.setFont('helvetica', 'bold');
+      doc.text('Rochester Safe Communities Proposal', 10, 10);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Intervention Summary:', 10, 20);
+      let y = 30;
+      sliders.forEach(s => { doc.text(`${s.id}: ${s.value}%`, 10, y); y += 8; });
+      doc.text('Projected Outcomes (per Year):', 10, y+10);
+      y += 20;
+      const results = getImpactScores();
+      doc.text(`Violent Crime: ${results.violent.toFixed(1)}`, 10, y);
+      doc.text(`Property Crime: ${results.property.toFixed(1)}`, 10, y+10);
+      doc.text(`Disorder Calls: ${results.disorder.toFixed(1)}`, 10, y+20);
+      doc.save('Rochester_Safe_Communities_Proposal.pdf');
+    });
+
+    updateAll();
+  </script>
+</body>
+</html>
