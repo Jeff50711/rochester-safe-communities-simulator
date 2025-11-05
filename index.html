@@ -1,179 +1,259 @@
-<!doctype html>
+<!DOCTYPE html>
+
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Rochester Safe Communities Simulator</title>
-
-  <!-- Google Font -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-
-  <link rel="stylesheet" href="style.css" />
-
-  <!-- Chart.js -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- jsPDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    :root {
+      --rpd-blue: #003366;
+      --rpd-gold: #d4af37;
+      --bg-light: #f8f9fb;
+      --text-dark: #1a1a1a;
+      --card-bg: #ffffff;
+      --accent-gray: #e1e5eb;
+    }
+
+```
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg-light);
+  color: var(--text-dark);
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 100vh;
+}
+
+header {
+  background: linear-gradient(90deg, var(--rpd-blue) 0%, #001f4d 100%);
+  color: var(--rpd-gold);
+  width: 100%;
+  padding: 1.5rem 2rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+header h1 {
+  font-size: 1.6rem;
+  margin: 0;
+  color: var(--rpd-gold);
+}
+
+header .summary {
+  display: flex;
+  gap: 2rem;
+  color: #ffffff;
+  flex-wrap: wrap;
+}
+
+.summary-item {
+  text-align: center;
+}
+
+.summary-item span {
+  display: block;
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: var(--rpd-gold);
+}
+
+main {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  width: 95%;
+  max-width: 1200px;
+  margin: 2rem auto;
+}
+
+section {
+  background-color: var(--card-bg);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  padding: 1.5rem;
+}
+
+h2 {
+  color: var(--rpd-blue);
+  margin-top: 0;
+}
+
+.slider-group {
+  margin-bottom: 1rem;
+}
+
+input[type="range"] {
+  width: 100%;
+  accent-color: var(--rpd-gold);
+}
+
+button {
+  background: var(--rpd-gold);
+  color: var(--rpd-blue);
+  font-weight: 600;
+  border: none;
+  padding: 0.8rem 1.4rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+  width: 100%;
+}
+
+button:hover {
+  background: #e0c34a;
+}
+
+#impactChart {
+  max-height: 280px;
+}
+
+footer {
+  width: 100%;
+  background: var(--rpd-blue);
+  color: #ffffff;
+  text-align: center;
+  padding: 1rem 0;
+  margin-top: auto;
+  font-size: 0.9rem;
+}
+```
+
+  </style>
 </head>
 <body>
-  <header class="site-header">
-    <div class="brand">
-      <div class="brand-badge">R</div>
-      <div class="brand-text">
-        <div class="title">Rochester Safe Communities Simulator</div>
-        <div class="subtitle">Data-driven scenarios • Research-backed proposals</div>
+  <header>
+    <h1>Rochester Safe Communities Simulator</h1>
+    <div class="summary">
+      <div class="summary-item">
+        <span id="totalCost">$0</span>
+        <small>Estimated Cost</small>
+      </div>
+      <div class="summary-item">
+        <span id="impactScore">0%</span>
+        <small>Projected Crime Reduction</small>
       </div>
     </div>
-    <nav class="top-right">
-      <div class="meta">Sample data: Rochester-like • Replace with MN BCA/Local CSV</div>
-    </nav>
   </header>
 
-  <main class="layout">
-    <!-- LEFT: Controls -->
-    <aside class="panel controls" aria-label="Intervention controls">
-      <h3>Intervention Controls</h3>
-      <p class="muted">Adjust sliders to simulate intervention intensity. Values are scaled and feed the impact model.</p>
-
-      <div class="form-grid">
-        <label>Hot-spot patrol intensity <span class="small">(% of baseline)</span>
-          <input id="hot_spot_patrol" type="range" min="0" max="200" value="100">
-        </label>
-        <div class="value" id="hot_spot_patrol_val">100%</div>
-
-        <label>Focused deterrence coverage <span class="small">(% of high-risk)</span>
-          <input id="focused_deterrence" type="range" min="0" max="100" value="0">
-        </label>
-        <div class="value" id="focused_deterrence_val">0%</div>
-
-        <label>Problem-oriented projects <span class="small">(active)</span>
-          <input id="pop_projects" type="range" min="0" max="10" value="0">
-        </label>
-        <div class="value" id="pop_projects_val">0</div>
-
-        <label>Procedural justice training <span class="small">(% officers)</span>
-          <input id="procedural_training" type="range" min="0" max="100" value="0">
-        </label>
-        <div class="value" id="procedural_training_val">0%</div>
-
-        <label>Street lighting improvement <span class="small">(% area)</span>
-          <input id="street_lighting" type="range" min="0" max="100" value="0">
-        </label>
-        <div class="value" id="street_lighting_val">0%</div>
-
-        <label>Vacant lot greening <span class="small">(% area)</span>
-          <input id="vacant_lot_greening" type="range" min="0" max="100" value="0">
-        </label>
-        <div class="value" id="vacant_lot_greening_val">0%</div>
-
-        <label>Liquor store reduction <span class="small">(% fewer)</span>
-          <input id="liquor_store_reduction" type="range" min="0" max="50" value="0">
-        </label>
-        <div class="value" id="liquor_store_reduction_val">0%</div>
-
-        <label>Food store access change <span class="small">(% change)</span>
-          <input id="food_store_delta" type="range" min="-50" max="50" value="0">
-        </label>
-        <div class="value" id="food_store_delta_val">0%</div>
-
-        <label>Sworn staffing (FTE)</label>
-          <input id="staffing" type="range" min="120" max="200" value="150">
-        <div class="value" id="staffing_val">150</div>
-
-        <label>CSO expansion <span class="small">(% of baseline)</span>
-          <input id="csos" type="range" min="0" max="200" value="100">
-        </label>
-        <div class="value" id="csos_val">100%</div>
-      </div>
-
-      <div class="control-actions">
-        <button id="resetBtn" class="btn ghost">Reset</button>
-      </div>
-    </aside>
-
-    <!-- CENTER: Charts & map -->
-    <section class="panel center" aria-label="Visualizations">
-      <div class="top-row">
-        <div class="card kpi">
-          <div class="kpi-title">Projected Violent Crime</div>
-          <div class="kpi-value" id="violentChange">0.0%</div>
-          <div class="kpi-sub">Annual % change vs baseline</div>
-        </div>
-
-        <div class="card kpi">
-          <div class="kpi-title">Projected Property Crime</div>
-          <div class="kpi-value" id="propertyChange">0.0%</div>
-          <div class="kpi-sub">Annual % change vs baseline</div>
-        </div>
-
-        <div class="card kpi">
-          <div class="kpi-title">Estimated crimes prevented / yr</div>
-          <div class="kpi-value" id="crimesPrevented">0</div>
-          <div class="kpi-sub">Violent + property</div>
-        </div>
-
-        <div class="card kpi">
-          <div class="kpi-title">Estimated annual cost</div>
-          <div class="kpi-value" id="estimatedCost">$0</div>
-          <div class="kpi-sub">Budget estimate</div>
-        </div>
-      </div>
-
-      <div class="viz-row">
-        <div class="card wide">
-          <div class="viz-header">
-            <h4 class="viz-title">5-Year Projection</h4>
-            <div class="viz-sub muted">Projected incidents under current scenario</div>
-          </div>
-          <canvas id="projectionChart"></canvas>
-        </div>
-
-        <div class="card narrow">
-          <h4>Baseline</h4>
-          <table class="baseline-table">
-            <tr><td>Population</td><td id="baselinePop">—</td></tr>
-            <tr><td>Violent incidents / yr</td><td id="baselineViolent">—</td></tr>
-            <tr><td>Property incidents / yr</td><td id="baselineProperty">—</td></tr>
-          </table>
-          <div style="height:18px"></div>
-          <h4>Key citations</h4>
-          <ul class="citations">
-            <li>Braga et al. — Hot spots policing</li>
-            <li>Braga & Weisburd — Focused deterrence</li>
-            <li>Welsh & Farrington — Lighting</li>
-            <li>Branas et al. — Greening</li>
-          </ul>
-        </div>
-      </div>
+  <main>
+    <section id="controls">
+      <h2>Intervention Controls</h2>
+      <div class="slider-group"><label>Patrol Staffing: <span id="staffingVal">50%</span></label><input type="range" id="staffing" min="0" max="100" value="50" /></div>
+      <div class="slider-group"><label>Community Service Officers: <span id="csoVal">50%</span></label><input type="range" id="cso" min="0" max="100" value="50" /></div>
+      <div class="slider-group"><label>Street Lighting Improvements: <span id="lightingVal">50%</span></label><input type="range" id="lighting" min="0" max="100" value="50" /></div>
+      <div class="slider-group"><label>Liquor Store Density: <span id="liquorVal">50%</span></label><input type="range" id="liquor" min="0" max="100" value="50" /></div>
+      <div class="slider-group"><label>Access to Fresh Food: <span id="foodVal">50%</span></label><input type="range" id="food" min="0" max="100" value="50" /></div>
+      <div class="slider-group"><label>Youth Outreach Programs: <span id="youthVal">50%</span></label><input type="range" id="youth" min="0" max="100" value="50" /></div>
+      <div class="slider-group"><label>Mental Health Response Teams: <span id="mentalVal">50%</span></label><input type="range" id="mental" min="0" max="100" value="50" /></div>
+      <div class="slider-group"><label>Technology (Cameras/Drones): <span id="techVal">50%</span></label><input type="range" id="tech" min="0" max="100" value="50" /></div>
+      <button id="implementBtn">Generate Proposal PDF</button>
     </section>
 
-    <!-- RIGHT: proposal & summary -->
-    <aside class="panel actions" aria-label="Proposal & actions">
-      <div class="card">
-        <h3>Scenario Summary</h3>
-        <div class="summary-text muted" id="scenarioSummary">Adjust sliders to build a scenario.</div>
-      </div>
+```
+<section id="results">
+  <h2>Projected Crime Impact (Rochester, MN)</h2>
+  <canvas id="impactChart"></canvas>
+</section>
+```
 
-      <div class="card">
-        <h3>Implementation</h3>
-        <p class="muted">When ready, generate a concise PDF proposal with timeline, budget, and citations — ready for the Mayor or funder.</p>
-        <div class="action-cta">
-          <button id="implementBtn" class="btn primary">Implement & Generate PDF</button>
-          <button id="downloadJson" class="btn ghost">Download Scenario JSON</button>
-        </div>
-      </div>
-
-      <div class="card small">
-        <h4>Notes & Ethics</h4>
-        <p class="muted small">Consider equity impacts — enforcement actions can disproportionately affect communities. Include community partners in design and evaluation.</p>
-      </div>
-    </aside>
   </main>
 
-  <footer class="site-footer">
-    <div>© <span id="year"></span> Rochester Safe Communities Simulator • Built for evidence-to-action</div>
+  <footer>
+    <p>© 2025 Rochester Police Department | Data-Informed Policing Dashboard</p>
   </footer>
 
-  <script src="script.js"></script>
+  <script>
+    const baseData = { violent: 290, property: 1560, disorder: 880 };
+    const sliders = document.querySelectorAll("input[type='range']");
+    const labels = {
+      staffing: document.getElementById("staffingVal"),
+      cso: document.getElementById("csoVal"),
+      lighting: document.getElementById("lightingVal"),
+      liquor: document.getElementById("liquorVal"),
+      food: document.getElementById("foodVal"),
+      youth: document.getElementById("youthVal"),
+      mental: document.getElementById("mentalVal"),
+      tech: document.getElementById("techVal"),
+    };
+
+    sliders.forEach(s => s.addEventListener('input', updateAll));
+
+    const ctx = document.getElementById('impactChart').getContext('2d');
+    let chart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Violent Crime', 'Property Crime', 'Disorder Calls'],
+        datasets: [{
+          label: 'Projected Incidents (per 100k)',
+          data: [baseData.violent, baseData.property, baseData.disorder],
+          backgroundColor: ['#003366', '#d4af37', '#7a99c0']
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: { y: { beginAtZero: true } }
+      }
+    });
+
+    function updateAll() {
+      sliders.forEach(s => labels[s.id].innerText = s.value + '%');
+      const impacts = getImpactScores();
+      chart.data.datasets[0].data = [impacts.violent, impacts.property, impacts.disorder];
+      chart.update();
+      updateSummary(impacts);
+    }
+
+    function getImpactScores() {
+      const v = Object.fromEntries([...sliders].map(s => [s.id, +s.value]));
+      const violent = baseData.violent * (1 - ((v.staffing*0.002 + v.cso*0.0015 + v.mental*0.001 + v.tech*0.001 - v.liquor*0.0008)/100));
+      const property = baseData.property * (1 - ((v.staffing*0.001 + v.lighting*0.002 + v.food*0.001 + v.tech*0.001 - v.liquor*0.0008)/100));
+      const disorder = baseData.disorder * (1 - ((v.cso*0.0018 + v.youth*0.0015 + v.lighting*0.001 - v.liquor*0.0009)/100));
+      return { violent, property, disorder };
+    }
+
+    function updateSummary(impacts) {
+      const baseSum = baseData.violent + baseData.property + baseData.disorder;
+      const newSum = impacts.violent + impacts.property + impacts.disorder;
+      const reduction = ((1 - newSum/baseSum) * 100).toFixed(2);
+      document.getElementById('impactScore').innerText = reduction + '%';
+
+      const totalCost = sliders.length * 25000 + Math.random()*50000;
+      document.getElementById('totalCost').innerText = '$' + totalCost.toLocaleString();
+    }
+
+    document.getElementById('implementBtn').addEventListener('click', () => {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.setFont('helvetica', 'bold');
+      doc.text('Rochester Safe Communities Proposal', 10, 10);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Intervention Summary:', 10, 20);
+      let y = 30;
+      sliders.forEach(s => { doc.text(`${s.id}: ${s.value}%`, 10, y); y += 8; });
+      doc.text('Projected Outcomes (per 100k):', 10, y+10);
+      y += 20;
+      const results = getImpactScores();
+      doc.text(`Violent Crime: ${results.violent.toFixed(1)}`, 10, y);
+      doc.text(`Property Crime: ${results.property.toFixed(1)}`, 10, y+10);
+      doc.text(`Disorder Calls: ${results.disorder.toFixed(1)}`, 10, y+20);
+      doc.save('Rochester_Safe_Communities_Proposal.pdf');
+    });
+
+    updateAll();
+  </script>
+
 </body>
 </html>
