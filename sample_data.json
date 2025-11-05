@@ -1,0 +1,13 @@
+{
+  "metadata": {
+    "city": "Rochester, MN",
+    "population": 120000,
+    "year": 2024
+  },
+  "baseline": {
+    "violent_incidents_per_year": 1200,
+    "property_incidents_per_year": 4000,
+    "disorder_calls_per_year": 2200
+  },
+  "notes": "These are realistic, approximate baselines intended to be Rochester-like. Replace with local MN BCA or RPD CSV for exact calibration."
+}
