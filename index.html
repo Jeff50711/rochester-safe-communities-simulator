@@ -4,9 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RPD Police Tech Dashboard</title>
-<!-- Chart.js CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<!-- Google Fonts -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   body {
@@ -16,8 +15,8 @@
     color: #333;
   }
   header {
-    background-color: #0b2340; /* RPD Navy */
-    color: #ffd700; /* Gold */
+    background-color: #0b2340; 
+    color: #ffd700; 
     padding: 16px 24px;
     text-align: center;
   }
@@ -142,14 +141,42 @@
 
 </div>
 
-<!-- PapaParse for CSV parsing -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
-
 <script>
-// --- Base data (4 categories) ---
 let baseData = { violent: 980, property: 2263, fraud: 450, disorder: 900 };
 
-// --- Chart setup ---
+const sliders = document.querySelectorAll('input[type="range"]');
+
+function getImpactScores(){
+  const v = Object.fromEntries([...sliders].map(s => [s.id, +s.value]));
+  const addedOfficers = v.staffing || 0;
+  const addedCSOs = v.cso || 0;
+
+  let violent_frac = -0.008*addedOfficers - 0.10*(v.tech/100) - 0.20*(v.youth/100) - 0.03*(v.lighting/100) + 0.10*(v.liquor/100);
+  let property_frac = -0.004*addedOfficers -0.002*addedCSOs -0.05*(v.tech/100) -0.20*(v.lighting/100) + 0.05*(v.liquor/100);
+  let fraud_frac = -0.002*addedOfficers -0.03*(v.tech/100) -0.10*(v.youth/100);
+  let disorder_frac = -0.01*addedCSOs -0.10*(v.youth/100) -0.10*(v.lighting/100);
+
+  function clamp(x){ return Math.max(-0.8, Math.min(0.8, x)); }
+  violent_frac = clamp(violent_frac); property_frac = clamp(property_frac);
+  fraud_frac = clamp(fraud_frac); disorder_frac = clamp(disorder_frac);
+
+  const violent_proj = Math.round(baseData.violent*(1+violent_frac));
+  const property_proj = Math.round(baseData.property*(1+property_frac));
+  const fraud_proj = Math.round(baseData.fraud*(1+fraud_frac));
+  const disorder_proj = Math.round(baseData.disorder*(1+disorder_frac));
+
+  return { 
+    violent: violent_proj, 
+    property: property_proj, 
+    fraud: fraud_proj, 
+    disorder: disorder_proj,
+    violent_frac, 
+    property_frac, 
+    fraud_frac, 
+    disorder_frac 
+  };
+}
+
 const ctx = document.getElementById('impactChart').getContext('2d');
 let chart = new Chart(ctx, {
   type: 'bar',
@@ -165,47 +192,21 @@ let chart = new Chart(ctx, {
     responsive:true,
     maintainAspectRatio:false,
     animation:{duration:400},
+    plugins:{
+      tooltip:{
+        callbacks:{
+          label: function(context){
+            const key = context.dataIndex===0?'violent':context.dataIndex===1?'property':context.dataIndex===2?'fraud':'disorder';
+            const proj = context.raw;
+            const reduction = ((baseData[key]-proj)/baseData[key]*100).toFixed(1);
+            return `${context.label}: ${proj} (-${reduction}%)`;
+          }
+        }
+      }
+    },
     scales:{y:{beginAtZero:true}}
   }
 });
-
-// --- Get slider values ---
-const sliders = document.querySelectorAll('input[type="range"]');
-
-function getImpactScores(){
-  const v = Object.fromEntries([...sliders].map(s => [s.id, +s.value]));
-  const addedOfficers = v.staffing || 0;
-  const addedCSOs = v.cso || 0;
-
-  // Fractional reductions (updated with research-based effects)
-  let violent_frac = -0.008*addedOfficers - 0.10*(v.tech/100) - 0.10*(v.youth/100) - 0.03*(v.lighting/100) + 0.10*(v.liquor/100);
-  let property_frac = -0.004*addedOfficers -0.002*addedCSOs -0.05*(v.tech/100) -0.20*(v.lighting/100) + 0.05*(v.liquor/100);
-  let fraud_frac = -0.002*addedOfficers -0.03*(v.tech/100) -0.05*(v.youth/100);
-  let disorder_frac = -0.01*addedCSOs -0.10*(v.youth/100) -0.10*(v.lighting/100);
-
-  function clamp(x){ return Math.max(-0.8, Math.min(0.8, x)); }
-  violent_frac = clamp(violent_frac); property_frac = clamp(property_frac);
-  fraud_frac = clamp(fraud_frac); disorder_frac = clamp(disorder_frac);
-
-  const violent_proj = Math.round(baseData.violent*(1+violent_frac));
-  const property_proj = Math.round(baseData.property*(1+property_frac));
-  const fraud_proj = Math.round(baseData.fraud*(1+fraud_frac));
-  const disorder_proj = Math.round(baseData.disorder*(1+disorder_frac));
-
-  return { violent:violent_proj, property:property_proj, fraud:fraud_proj, disorder:disorder_proj,
-           violent_frac, property_frac, fraud_frac, disorder_frac };
-}
-
-function updateChart(){
-  const impacts = getImpactScores();
-  chart.data.datasets[0].data = [impacts.violent, impacts.property, impacts.fraud, impacts.disorder];
-  chart.data.datasets[0].backgroundColor = getBarColors(impacts);
-  chart.update();
-
-  // Update cost estimate
-  const staffingCost = (document.getElementById('staffing').value*150000 + document.getElementById('cso').value*100000).toLocaleString();
-  document.getElementById('cost-estimate').innerText = `Estimated Additional Staffing Cost: $${staffingCost}`;
-}
 
 function getBarColors(impacts){
   const keys = ['violent','property','fraud','disorder'];
@@ -217,11 +218,20 @@ function getBarColors(impacts){
   });
 }
 
-// Attach slider listeners
+function updateChart(){
+  const impacts = getImpactScores();
+  chart.data.datasets[0].data = [impacts.violent, impacts.property, impacts.fraud, impacts.disorder];
+  chart.data.datasets[0].backgroundColor = getBarColors(impacts);
+  chart.update();
+
+  const staffingCost = (document.getElementById('staffing').value*150000 + document.getElementById('cso').value*100000).toLocaleString();
+  document.getElementById('cost-estimate').innerText = `Estimated Additional Staffing Cost: $${staffingCost}`;
+}
+
 sliders.forEach(s=>s.addEventListener('input', updateChart));
 updateChart();
 
-// --- CSV Upload logic ---
+// --- CSV Upload ---
 const MAPPING = {
   violent: ['homicide','murder','rape','sexual','robbery','assault','kidnap','abduct','human trafficking'],
   fraud: ['fraud','credit card','atm','identity','impersonation','wire fraud','computer','embezzlement','forgery','counterfeit','extortion'],
@@ -270,7 +280,7 @@ document.getElementById('learcatUpload').addEventListener('change', function(e){
   });
 });
 
-// --- Generate button ---
+// --- Generate Proposal ---
 document.getElementById('generateBtn').addEventListener('click', ()=>{
   const impacts = getImpactScores();
   const proposalText = `
@@ -291,8 +301,6 @@ Other/Disorder: ${impacts.disorder}
 
 Estimated additional staffing cost: ${document.getElementById('cost-estimate').innerText.replace('Estimated Additional Staffing Cost: ','')}
 Source: 2023 LEARCAT estimates, Olmsted County, MN
-
-Timeline, budget, and citations can be added in a formal proposal document.
 `;
   alert(proposalText);
 });
