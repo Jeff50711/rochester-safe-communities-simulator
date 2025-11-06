@@ -122,7 +122,7 @@
       <input type="range" id="youth" min="0" max="100" value="0">
     </div>
     <div class="slider-container">
-      <label for="liquor">Liquor Stores Adjustment (%)</label>
+      <label for="liquor">Reduce Liquor Outlets (%)</label>
       <input type="range" id="liquor" min="0" max="100" value="0">
     </div>
 
@@ -177,11 +177,11 @@ function getImpactScores(){
   const addedOfficers = v.staffing || 0;
   const addedCSOs = v.cso || 0;
 
-  // Fractional reductions (simple example logic)
-  let violent_frac = -0.008 * addedOfficers - 0.07 * (v.tech/100) - 0.01*(v.youth/100) + 0.02*(v.liquor/100);
-  let property_frac = -0.004*addedOfficers -0.002*addedCSOs -0.10*(v.lighting/100) -0.01*(v.tech/100) + -0.03*(v.liquor/100);
-  let fraud_frac = -0.002*addedOfficers -0.01*(v.tech/100) -0.02*(v.youth/100);
-  let disorder_frac = -0.01*addedCSOs -0.03*(v.youth/100) -0.02*(v.lighting/100);
+  // Fractional reductions (updated with research-based effects)
+  let violent_frac = -0.008*addedOfficers - 0.10*(v.tech/100) - 0.10*(v.youth/100) - 0.03*(v.lighting/100) + 0.10*(v.liquor/100);
+  let property_frac = -0.004*addedOfficers -0.002*addedCSOs -0.05*(v.tech/100) -0.20*(v.lighting/100) + 0.05*(v.liquor/100);
+  let fraud_frac = -0.002*addedOfficers -0.03*(v.tech/100) -0.05*(v.youth/100);
+  let disorder_frac = -0.01*addedCSOs -0.10*(v.youth/100) -0.10*(v.lighting/100);
 
   function clamp(x){ return Math.max(-0.8, Math.min(0.8, x)); }
   violent_frac = clamp(violent_frac); property_frac = clamp(property_frac);
@@ -278,10 +278,10 @@ Proposal: RPD Crime Reduction Interventions
 
 1. Additional Officers: ${document.getElementById('staffing').value} → Violent/Property/Fraud/Other impact
 2. Additional CSOs: ${document.getElementById('cso').value} → Property/Other impact
-3. Tech Investment: ${document.getElementById('tech').value}% → Violent/Fraud impact
-4. Street Lighting: ${document.getElementById('lighting').value}% → Property/Other
+3. Tech Investment: ${document.getElementById('tech').value}% → Violent/Property/Fraud impact
+4. Street Lighting: ${document.getElementById('lighting').value}% → Violent/Property/Other
 5. Youth Programs: ${document.getElementById('youth').value}% → Violent/Fraud/Other
-6. Liquor Store Adjustment: ${document.getElementById('liquor').value}% → Violent/Property impact
+6. Reduce Liquor Outlets: ${document.getElementById('liquor').value}% → Violent/Property impact
 
 Projected incidents per year after interventions:
 Violent Crimes: ${impacts.violent}
