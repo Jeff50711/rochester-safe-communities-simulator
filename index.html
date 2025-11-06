@@ -160,7 +160,7 @@ footer {
 </head>
 <body>
 <header>
-  <h1>Rochester Police Tech Dashboard</h1>
+  <h1>Rochester Police Strategy Dashboard</h1>
   <div class="summary">
     <div class="summary-item">
       <span id="totalCost">$0</span>
@@ -175,8 +175,21 @@ footer {
 <main>
 <section id="controls">
 <h2>Intervention Controls</h2>
-<div class="slider-group tooltip"><i class="fa-solid fa-user-shield"></i><label>Patrol Staffing: <span id="staffingVal">50%</span></label><span class="tooltiptext">Increase patrol staffing to reduce incidents.</span><input type="range" id="staffing" min="0" max="100" value="50"></div>
-<div class="slider-group tooltip"><i class="fa-solid fa-person-walking"></i><label>Community Service Officers: <span id="csoVal">50%</span></label><span class="tooltiptext">Deploy CSOs for neighborhood safety.</span><input type="range" id="cso" min="0" max="100" value="50"></div>
+<!-- Replace old staffing and cso slider blocks with these -->
+<div class="slider-group tooltip">
+  <i class="fa-solid fa-user-shield"></i>
+  <label>Additional Sworn Officers: <span id="staffingVal">0</span></label>
+  <span class="tooltiptext">Add sworn FTE to the department (each ~ $150,000/yr)</span>
+  <input type="range" id="staffing" min="0" max="50" value="0">
+</div>
+
+<div class="slider-group tooltip">
+  <i class="fa-solid fa-person-walking"></i>
+  <label>Additional CSOs: <span id="csoVal">0</span></label>
+  <span class="tooltiptext">Add Community Service Officers (each ~ $100,000/yr)</span>
+  <input type="range" id="cso" min="0" max="200" value="0">
+</div>
+ type="range" id="cso" min="0" max="100" value="50"></div>
 <div class="slider-group tooltip"><i class="fa-solid fa-lightbulb"></i><label>Street Lighting: <span id="lightingVal">50%</span></label><span class="tooltiptext">Better lighting reduces crime hotspots.</span><input type="range" id="lighting" min="0" max="100" value="50"></div>
 <div class="slider-group tooltip"><i class="fa-solid fa-wine-glass"></i><label>Liquor Store Density: <span id="liquorVal">50%</span></label><span class="tooltiptext">Lower density may reduce alcohol-related crime.</span><input type="range" id="liquor" min="0" max="100" value="50"></div>
 <div class="slider-group tooltip"><i class="fa-solid fa-carrot"></i><label>Access to Fresh Food: <span id="foodVal">50%</span></label><span class="tooltiptext">Better access reduces neighborhood stressors.</span><input type="range" id="food" min="0" max="100" value="50"></div>
