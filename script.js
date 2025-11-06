@@ -74,4 +74,84 @@ function updateChart(){
   chart.update();
 
   const staffingCost = (document.getElementById('staffing').value*150000 + document.getElementById('cso').value*100000).toLocaleString();
-  document.getElement
+  document.getElementById('cost-estimate').innerText = `Estimated Additional Staffing Cost: $${staffingCost}`;
+}
+
+sliders.forEach(s=>s.addEventListener('input', updateChart));
+updateChart();
+
+// CSV parsing for LEARCAT
+const MAPPING = {
+  violent: ['homicide','murder','rape','sexual','robbery','assault','kidnap','abduct','human trafficking'],
+  fraud: ['fraud','credit card','atm','identity','impersonation','wire fraud','computer','embezzlement','forgery','counterfeit','extortion'],
+  property: ['burglary','larceny','theft','motor vehicle theft','vehicle theft','arson','stolen property','shoplifting'],
+  other: []
+};
+
+function norm(s){ return (s||'').toString().toLowerCase(); }
+function aggregateLEARCAT(rows){
+  const keys = rows.length ? Object.keys(rows[0]) : [];
+  const offenseFields = keys.filter(k => /offense|offense_name|offense_type/i.test(k));
+  const countFields = keys.filter(k => /actual|count|incidents|numb/i.test(k));
+  if(offenseFields.length===0||countFields.length===0){console.warn('CSV format not recognized');return null;}
+  const offenseKey = offenseFields[0]; const countKey = countFields[0];
+  const totals = {violent:0, property:0, fraud:0, other:0};
+  rows.forEach(r=>{
+    const name=norm(r[offenseKey]);
+    const count = r[countKey]?parseInt(r[countKey].toString().replace(/[, ]/g,''))||0:0;
+    let matched=false;
+    for(const category of ['violent','fraud','property']){
+      for(const pat of MAPPING[category]){
+        if(name.indexOf(pat)!==-1){totals[category]+=count;matched=true;break;}
+      }
+      if(matched) break;
+    }
+    if(!matched) totals.other+=count;
+  });
+  return totals;
+}
+
+document.getElementById('learcatUpload').addEventListener('change', function(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  document.getElementById('learnote').innerText = `Parsing ${file.name}...`;
+  Papa.parse(file,{header:true,skipEmptyLines:true,
+    complete:function(results){
+      const rows=results.data; const totals=aggregateLEARCAT(rows);
+      if(!totals){document.getElementById('learnote').innerText='CSV parse succeeded but format not recognized.';return;}
+      baseData.violent=totals.violent||baseData.violent;
+      baseData.property=totals.property||baseData.property;
+      baseData.fraud=totals.fraud||baseData.fraud;
+      baseData.disorder=totals.other||baseData.disorder;
+      document.getElementById('learnote').innerText=`Baselines seeded from ${file.name}. Violent:${baseData.violent}, Property:${baseData.property}, Fraud:${baseData.fraud}, Other:${baseData.disorder}.`;
+      updateChart();
+    },
+    error:function(err){document.getElementById('learnote').innerText='CSV parse error';console.error(err);}
+  });
+});
+
+// Generate proposal
+document.getElementById('generateBtn').addEventListener('click', ()=>{
+  const impacts = getImpactScores();
+  const proposalText = `
+Proposal: RPD Strategic Interventions Tool
+
+1. Additional Officers: ${document.getElementById('staffing').value}
+2. Additional CSOs: ${document.getElementById('cso').value}
+3. Tech Investment: ${document.getElementById('tech').value}%
+4. Street Lighting: ${document.getElementById('lighting').value}%
+5. Youth Programs: ${document.getElementById('youth').value}%
+6. Reduce Liquor Outlets: ${document.getElementById('liquor').value}%
+
+Projected incidents per year:
+Violent Crimes: ${impacts.violent}
+Property Crimes: ${impacts.property}
+Fraud & Financial: ${impacts.fraud}
+Other/Disorder: ${impacts.disorder}
+
+${document.getElementById('cost-estimate').innerText}
+
+Source: 2023 LEARCAT estimates, Olmsted County, MN
+`;
+  alert(proposalText);
+});
