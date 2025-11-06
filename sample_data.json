@@ -1,11 +1,9 @@
 {
+  "title": "RPD Strategic Interventions Tool",
   "baseline": {
-    "violent_incidents_per_year": 980,
-    "property_incidents_per_year": 2263
-  },
-  "metadata": {
-    "city": "Rochester, MN",
-    "population": 165000,
-    "year": 2023
+    "violent": 980,
+    "property": 2263,
+    "fraud": 450,
+    "disorder": 900
   }
 }
