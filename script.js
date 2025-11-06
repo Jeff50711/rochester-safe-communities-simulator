@@ -123,4 +123,37 @@ document.getElementById('learcatUpload').addEventListener('change', function(e){
       if(!totals){document.getElementById('learnote').innerText='CSV parse succeeded but format not recognized.';return;}
       baseData.violent=totals.violent||baseData.violent;
       baseData.property=totals.property||baseData.property;
-      baseData.fraud=tot
+      baseData.fraud=totals.fraud||baseData.fraud;
+      baseData.disorder=totals.other||baseData.disorder;
+      document.getElementById('learnote').innerText=`Baselines seeded from ${file.name}. Violent:${baseData.violent}, Property:${baseData.property}, Fraud:${baseData.fraud}, Other:${baseData.disorder}.`;
+      updateChart();
+    },
+    error:function(err){document.getElementById('learnote').innerText='CSV parse error';console.error(err);}
+  });
+});
+
+// Generate Proposal
+document.getElementById('generateBtn').addEventListener('click', ()=>{
+  const impacts = getImpactScores();
+  const proposalText = `
+Proposal: RPD Strategic Interventions Tool
+
+1. Additional Officers: ${document.getElementById('staffing').value}
+2. Additional CSOs: ${document.getElementById('cso').value}
+3. Tech Investment: ${document.getElementById('tech').value}%
+4. Street Lighting: ${document.getElementById('lighting').value}%
+5. Youth Programs: ${document.getElementById('youth').value}%
+6. Reduce Liquor Outlets: ${document.getElementById('liquor').value}%
+
+Projected incidents per year:
+Violent Crimes: ${impacts.violent}
+Property Crimes: ${impacts.property}
+Fraud & Financial: ${impacts.fraud}
+Other/Disorder: ${impacts.disorder}
+
+${document.getElementById('cost-estimate').innerText}
+
+Source: 2023 LEARCAT estimates, Olmsted County, MN
+`;
+  alert(proposalText);
+});
