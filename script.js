@@ -1,21 +1,29 @@
+// ----------------------
 // Base crime data
+// ----------------------
 let baseData = { violent: 980, property: 2263, fraud: 450, disorder: 900 };
 const sliders = document.querySelectorAll('input[type="range"]');
 
+// ----------------------
 // Calculate projected impact
+// ----------------------
 function getImpactScores(){
   const v = Object.fromEntries([...sliders].map(s => [s.id, +s.value]));
   const addedOfficers = v.staffing || 0;
   const addedCSOs = v.cso || 0;
 
-  let violent_frac = -0.008*addedOfficers -0.10*(v.tech/100) -0.20*(v.youth/100) -0.03*(v.lighting/100) +0.10*(v.liquor/100);
-  let property_frac = -0.004*addedOfficers -0.002*addedCSOs -0.05*(v.tech/100) -0.20*(v.lighting/100) +0.05*(v.liquor/100);
-  let fraud_frac = -0.002*addedOfficers -0.03*(v.tech/100) -0.10*(v.youth/100);
-  let disorder_frac = -0.01*addedCSOs -0.10*(v.youth/100) -0.10*(v.lighting/100);
+  // Updated fractions: all interventions reduce crime appropriately
+  let violent_frac   = -0.008*addedOfficers -0.10*(v.tech/100) -0.20*(v.youth/100) -0.03*(v.lighting/100) -0.10*(v.liquor/100);
+  let property_frac  = -0.004*addedOfficers -0.002*addedCSOs -0.05*(v.tech/100) -0.20*(v.lighting/100) -0.05*(v.liquor/100);
+  let fraud_frac     = -0.002*addedOfficers -0.03*(v.tech/100) -0.10*(v.youth/100);
+  let disorder_frac  = -0.01*addedCSOs -0.10*(v.youth/100) -0.10*(v.lighting/100);
 
+  // Clamp to max 80% reduction
   function clamp(x){ return Math.max(-0.8, Math.min(0.8, x)); }
-  violent_frac = clamp(violent_frac); property_frac = clamp(property_frac);
-  fraud_frac = clamp(fraud_frac); disorder_frac = clamp(disorder_frac);
+  violent_frac   = clamp(violent_frac);
+  property_frac  = clamp(property_frac);
+  fraud_frac     = clamp(fraud_frac);
+  disorder_frac  = clamp(disorder_frac);
 
   return { 
     violent: Math.round(baseData.violent*(1+violent_frac)), 
@@ -26,7 +34,9 @@ function getImpactScores(){
   };
 }
 
+// ----------------------
 // Chart setup
+// ----------------------
 const ctx = document.getElementById('impactChart').getContext('2d');
 let chart = new Chart(ctx, {
   type: 'bar',
@@ -58,17 +68,22 @@ let chart = new Chart(ctx, {
   }
 });
 
+// ----------------------
+// Dynamic bar colors
+// ----------------------
 function getBarColors(impacts){
   const keys = ['violent','property','fraud','disorder'];
   return keys.map(k=>{
     const reduction = 1 - impacts[k]/baseData[k];
-    if(reduction>=0.30) return '#00c853';
-    if(reduction>=0.10) return '#ffd600';
-    return '#ff3d00';
+    if(reduction>=0.30) return '#00c853';  // green
+    if(reduction>=0.10) return '#ffd600';  // yellow
+    return '#ff3d00';                      // red
   });
 }
 
+// ----------------------
 // Update chart & cost
+// ----------------------
 function updateChart(){
   const impacts = getImpactScores();
   chart.data.datasets[0].data = [impacts.violent, impacts.property, impacts.fraud, impacts.disorder];
@@ -79,10 +94,13 @@ function updateChart(){
   document.getElementById('cost-estimate').innerText = `Estimated Additional Staffing Cost: $${staffingCost}`;
 }
 
+// Event listeners for sliders
 sliders.forEach(s=>s.addEventListener('input', updateChart));
 updateChart();
 
+// ----------------------
 // CSV Upload parsing (optional)
+// ----------------------
 const MAPPING = {
   violent: ['homicide','murder','rape','sexual','robbery','assault','kidnap','abduct','human trafficking'],
   fraud: ['fraud','credit card','atm','identity','impersonation','wire fraud','computer','embezzlement','forgery','counterfeit','extortion'],
@@ -132,7 +150,9 @@ document.getElementById('learcatUpload').addEventListener('change', function(e){
   });
 });
 
+// ----------------------
 // Generate Proposal
+// ----------------------
 document.getElementById('generateBtn').addEventListener('click', ()=>{
   const impacts = getImpactScores();
   const proposalText = `
