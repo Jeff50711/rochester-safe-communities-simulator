@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RPD Police Tech Dashboard</title>
+<title>RPD Strategic Interventions Tool</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
@@ -22,7 +22,12 @@
   }
   header h1 {
     margin: 0;
-    font-size: 24px;
+    font-size: 26px;
+    font-weight: 700;
+  }
+  header p {
+    margin: 4px 0 0;
+    font-size: 14px;
   }
   #dashboard {
     display: flex;
@@ -91,8 +96,8 @@
 <body>
 
 <header>
-  <h1>RPD Police Tech Dashboard</h1>
-  <p style="font-size:14px;">Baseline: 2023 LEARCAT estimates, Olmsted County, MN</p>
+  <h1>RPD Strategic Interventions Tool</h1>
+  <p>Baseline: 2023 LEARCAT estimates, Olmsted County, MN</p>
 </header>
 
 <div id="dashboard">
@@ -143,7 +148,6 @@
 
 <script>
 let baseData = { violent: 980, property: 2263, fraud: 450, disorder: 900 };
-
 const sliders = document.querySelectorAll('input[type="range"]');
 
 function getImpactScores(){
@@ -151,8 +155,8 @@ function getImpactScores(){
   const addedOfficers = v.staffing || 0;
   const addedCSOs = v.cso || 0;
 
-  let violent_frac = -0.008*addedOfficers - 0.10*(v.tech/100) - 0.20*(v.youth/100) - 0.03*(v.lighting/100) + 0.10*(v.liquor/100);
-  let property_frac = -0.004*addedOfficers -0.002*addedCSOs -0.05*(v.tech/100) -0.20*(v.lighting/100) + 0.05*(v.liquor/100);
+  let violent_frac = -0.008*addedOfficers -0.10*(v.tech/100) -0.20*(v.youth/100) -0.03*(v.lighting/100) +0.10*(v.liquor/100);
+  let property_frac = -0.004*addedOfficers -0.002*addedCSOs -0.05*(v.tech/100) -0.20*(v.lighting/100) +0.05*(v.liquor/100);
   let fraud_frac = -0.002*addedOfficers -0.03*(v.tech/100) -0.10*(v.youth/100);
   let disorder_frac = -0.01*addedCSOs -0.10*(v.youth/100) -0.10*(v.lighting/100);
 
@@ -160,20 +164,12 @@ function getImpactScores(){
   violent_frac = clamp(violent_frac); property_frac = clamp(property_frac);
   fraud_frac = clamp(fraud_frac); disorder_frac = clamp(disorder_frac);
 
-  const violent_proj = Math.round(baseData.violent*(1+violent_frac));
-  const property_proj = Math.round(baseData.property*(1+property_frac));
-  const fraud_proj = Math.round(baseData.fraud*(1+fraud_frac));
-  const disorder_proj = Math.round(baseData.disorder*(1+disorder_frac));
-
   return { 
-    violent: violent_proj, 
-    property: property_proj, 
-    fraud: fraud_proj, 
-    disorder: disorder_proj,
-    violent_frac, 
-    property_frac, 
-    fraud_frac, 
-    disorder_frac 
+    violent: Math.round(baseData.violent*(1+violent_frac)), 
+    property: Math.round(baseData.property*(1+property_frac)), 
+    fraud: Math.round(baseData.fraud*(1+fraud_frac)), 
+    disorder: Math.round(baseData.disorder*(1+disorder_frac)),
+    violent_frac, property_frac, fraud_frac, disorder_frac
   };
 }
 
@@ -231,7 +227,7 @@ function updateChart(){
 sliders.forEach(s=>s.addEventListener('input', updateChart));
 updateChart();
 
-// --- CSV Upload ---
+// --- CSV Upload logic ---
 const MAPPING = {
   violent: ['homicide','murder','rape','sexual','robbery','assault','kidnap','abduct','human trafficking'],
   fraud: ['fraud','credit card','atm','identity','impersonation','wire fraud','computer','embezzlement','forgery','counterfeit','extortion'],
@@ -284,7 +280,7 @@ document.getElementById('learcatUpload').addEventListener('change', function(e){
 document.getElementById('generateBtn').addEventListener('click', ()=>{
   const impacts = getImpactScores();
   const proposalText = `
-Proposal: RPD Crime Reduction Interventions
+Proposal: RPD Strategic Interventions
 
 1. Additional Officers: ${document.getElementById('staffing').value} → Violent/Property/Fraud/Other impact
 2. Additional CSOs: ${document.getElementById('cso').value} → Property/Other impact
