@@ -3,246 +3,298 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Police Tech Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<title>RPD Police Tech Dashboard</title>
+<!-- Chart.js CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   body {
-    font-family: 'Inter', sans-serif;
-    background-color: #0d1b2a;
-    color: #f8f9fa;
+    font-family: 'Roboto', sans-serif;
     margin: 0;
-    padding: 0;
+    background-color: #f5f7fa;
+    color: #333;
   }
   header {
-    background-color: #142d4c;
-    padding: 20px 40px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    color: #fff;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    background-color: #0b2340; /* RPD Navy */
+    color: #ffd700; /* Gold */
+    padding: 16px 24px;
+    text-align: center;
   }
   header h1 {
-    font-size: 1.8rem;
-    font-weight: 700;
+    margin: 0;
+    font-size: 24px;
   }
-  .summary {
+  #dashboard {
     display: flex;
-    gap: 40px;
-    align-items: center;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    padding: 16px;
   }
-  .summary-item {
-    background-color: #1b3b6f;
-    padding: 10px 20px;
-    border-radius: 10px;
-    text-align: center;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.3);
-  }
-  .summary-item span {
-    display: block;
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: #ffd700;
-  }
-  .container {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 30px;
-    padding: 40px;
-  }
-  .card {
-    background-color: #1e3a5f;
-    padding: 25px;
+  .control-panel, .chart-panel {
+    background-color: #ffffff;
     border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    margin: 12px;
+    padding: 16px;
+    flex: 1 1 400px;
   }
-  .card h2 {
-    margin-top: 0;
-    color: #ffd700;
-    font-size: 1.3rem;
+  .control-panel h2 {
+    color: #0b2340;
+    font-size: 18px;
+    margin-bottom: 12px;
   }
-  .slider-group {
-    margin: 15px 0;
+  .slider-container {
+    margin-bottom: 12px;
+  }
+  label {
+    display: block;
+    margin-bottom: 4px;
+    font-weight: 500;
   }
   input[type="range"] {
     width: 100%;
-    margin-top: 5px;
-    accent-color: #ffd700;
   }
-  #crimeChart {
-    width: 100%;
-    height: 350px !important;
-  }
-  .btn-generate {
-    display: inline-block;
+  #generateBtn {
     background-color: #ffd700;
-    color: #142d4c;
-    font-weight: bold;
-    padding: 12px 24px;
-    margin-top: 25px;
     border: none;
+    color: #0b2340;
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: 700;
     border-radius: 8px;
     cursor: pointer;
-    transition: 0.3s ease;
+    margin-top: 12px;
+    width: 100%;
   }
-  .btn-generate:hover {
-    background-color: #f4c10f;
+  #generateBtn:hover {
+    background-color: #e6c200;
+  }
+  canvas {
+    max-width: 100%;
+    height: 400px;
+  }
+  #cost-estimate {
+    font-weight: 700;
+    font-size: 16px;
+    margin-top: 12px;
+  }
+  #learcatUpload {
+    margin-top: 8px;
+  }
+  #learnote {
+    font-size: 12px;
+    color: #555;
+    margin-top: 4px;
   }
 </style>
 </head>
 <body>
 
 <header>
-  <h1>Rochester Police Tech Dashboard</h1>
-  <div class="summary">
-    <div class="summary-item">
-      Estimated Cost
-      <span id="costDisplay">$0</span>
-    </div>
-    <div class="summary-item">
-      Projected Crime Reduction
-      <span id="reductionDisplay">0%</span>
-    </div>
-  </div>
+  <h1>RPD Police Tech Dashboard</h1>
+  <p style="font-size:14px;">Baseline: 2023 LEARCAT estimates, Olmsted County, MN</p>
 </header>
 
-<div class="container">
-  <div class="card">
-    <h2>Intervention Controls</h2>
-    <div class="slider-group">
-      <label>Patrol Officers: <span id="patrolVal">0</span></label>
-      <input type="range" id="patrol" min="0" max="20" value="0" oninput="updateAll()">
+<div id="dashboard">
+
+  <div class="control-panel">
+    <h2>Interventions</h2>
+
+    <div class="slider-container">
+      <label for="staffing">Additional Officers</label>
+      <input type="range" id="staffing" min="0" max="10" value="0">
     </div>
-    <div class="slider-group">
-      <label>Community Service Officers: <span id="csoVal">0</span></label>
-      <input type="range" id="cso" min="0" max="20" value="0" oninput="updateAll()">
+    <div class="slider-container">
+      <label for="cso">Additional CSOs</label>
+      <input type="range" id="cso" min="0" max="10" value="0">
     </div>
-    <div class="slider-group">
-      <label>Street Lighting Increase (%): <span id="lightingVal">0</span></label>
-      <input type="range" id="lighting" min="0" max="50" value="0" oninput="updateAll()">
+    <div class="slider-container">
+      <label for="tech">Technology Investments (%)</label>
+      <input type="range" id="tech" min="0" max="100" value="0">
     </div>
-    <div class="slider-group">
-      <label>Liquor Stores Change (%): <span id="liquorVal">0</span></label>
-      <input type="range" id="liquor" min="-50" max="50" value="0" oninput="updateAll()">
+    <div class="slider-container">
+      <label for="lighting">Street Lighting (%)</label>
+      <input type="range" id="lighting" min="0" max="100" value="0">
     </div>
-    <div class="slider-group">
-      <label>Food Stores Change (%): <span id="foodVal">0</span></label>
-      <input type="range" id="food" min="0" max="50" value="0" oninput="updateAll()">
+    <div class="slider-container">
+      <label for="youth">Youth & Community Programs (%)</label>
+      <input type="range" id="youth" min="0" max="100" value="0">
     </div>
-    <button class="btn-generate" onclick="generateProposal()">Generate Proposal PDF</button>
+    <div class="slider-container">
+      <label for="liquor">Liquor Stores Adjustment (%)</label>
+      <input type="range" id="liquor" min="0" max="100" value="0">
+    </div>
+
+    <button id="generateBtn">Generate Proposal</button>
+    <div id="cost-estimate"></div>
+
+    <div style="margin-top:16px;">
+      <label for="learcatUpload">Upload LEARCAT CSV (Olmsted 2023)</label>
+      <input id="learcatUpload" type="file" accept=".csv" />
+      <div id="learnote">No file uploaded → using estimated baselines.</div>
+    </div>
   </div>
 
-  <div class="card">
-    <h2>Projected Crime Outcomes</h2>
-    <canvas id="crimeChart"></canvas>
+  <div class="chart-panel">
+    <canvas id="impactChart"></canvas>
   </div>
+
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<!-- PapaParse for CSV parsing -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+
 <script>
-const baseData = {
-  violent: 120,
-  property: 350,
-  disorder: 220
-};
+// --- Base data (4 categories) ---
+let baseData = { violent: 980, property: 2263, fraud: 450, disorder: 900 };
 
-function getImpactScores(values) {
-  let violent = baseData.violent;
-  let property = baseData.property;
-  let disorder = baseData.disorder;
-
-  violent *= 1 - (values.patrol * 0.005 + values.lighting * 0.002 - values.liquor * 0.004 + values.food * 0.003);
-  property *= 1 - (values.patrol * 0.007 + values.cso * 0.004 + values.lighting * 0.002 - values.liquor * 0.005 + values.food * 0.003);
-  disorder *= 1 - (values.patrol * 0.004 + values.cso * 0.008 + values.lighting * 0.004 - values.liquor * 0.006 + values.food * 0.004);
-
-  return {
-    violent: Math.max(violent, 0),
-    property: Math.max(property, 0),
-    disorder: Math.max(disorder, 0)
-  };
-}
-
-function calculateCost(values) {
-  let total = 0;
-  total += values.patrol * 150000;
-  total += values.cso * 100000;
-  total += values.lighting * 2000;
-  total += Math.abs(values.liquor) * 500;
-  total += values.food * 1000;
-  return total;
-}
-
-function updateAll() {
-  const patrol = +document.getElementById('patrol').value;
-  const cso = +document.getElementById('cso').value;
-  const lighting = +document.getElementById('lighting').value;
-  const liquor = +document.getElementById('liquor').value;
-  const food = +document.getElementById('food').value;
-
-  document.getElementById('patrolVal').innerText = patrol;
-  document.getElementById('csoVal').innerText = cso;
-  document.getElementById('lightingVal').innerText = lighting + '%';
-  document.getElementById('liquorVal').innerText = liquor + '%';
-  document.getElementById('foodVal').innerText = food + '%';
-
-  const values = { patrol, cso, lighting, liquor, food };
-  const impacts = getImpactScores(values);
-  const totalCost = calculateCost(values);
-
-  const reduction = 100 - ((impacts.violent + impacts.property + impacts.disorder) /
-    (baseData.violent + baseData.property + baseData.disorder)) * 100;
-
-  document.getElementById('costDisplay').innerText = `$${totalCost.toLocaleString()}`;
-  document.getElementById('reductionDisplay').innerText = `${reduction.toFixed(1)}%`;
-
-  updateChart(impacts);
-}
-
-function updateChart(impacts) {
-  const values = [impacts.violent, impacts.property, impacts.disorder];
-  const colors = values.map((val, i) => {
-    const base = Object.values(baseData)[i];
-    const reduction = 1 - val / base;
-    if (reduction >= 0.3) return '#00c853';
-    if (reduction >= 0.1) return '#ffd600';
-    return '#ff3d00';
-  });
-  chart.data.datasets[0].data = values;
-  chart.data.datasets[0].backgroundColor = colors;
-  chart.update();
-}
-
-function generateProposal() {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(16);
-  doc.text("Rochester Police Intervention Proposal", 20, 20);
-  doc.setFontSize(12);
-  doc.setFont("helvetica", "normal");
-  doc.text("This proposal outlines recommended interventions based on the Police Tech Dashboard analysis.", 20, 35);
-  doc.text("Projected Crime Reduction and Estimated Cost reflect the interactive model inputs.", 20, 45);
-  doc.save("Rochester_Police_Proposal.pdf");
-}
-
-const ctx = document.getElementById('crimeChart').getContext('2d');
-const chart = new Chart(ctx, {
+// --- Chart setup ---
+const ctx = document.getElementById('impactChart').getContext('2d');
+let chart = new Chart(ctx, {
   type: 'bar',
   data: {
-    labels: ['Violent Crime', 'Property Crime', 'Disorder Calls'],
+    labels: ['Violent Crimes','Property Crimes','Fraud & Financial','Other/Disorder'],
     datasets: [{
-      label: 'Crime Incidents',
-      data: [baseData.violent, baseData.property, baseData.disorder],
-      backgroundColor: ['#ff3d00', '#ff3d00', '#ff3d00']
+      label: 'Projected Incidents per Year',
+      data: [baseData.violent, baseData.property, baseData.fraud, baseData.disorder],
+      backgroundColor: ['#0b2340','#ffd700','#7a99c0','#9b59b6']
     }]
   },
-  options: {
-    responsive: true,
-    scales: {
-      y: { beginAtZero: true }
-    }
+  options:{
+    responsive:true,
+    maintainAspectRatio:false,
+    animation:{duration:400},
+    scales:{y:{beginAtZero:true}}
   }
+});
+
+// --- Get slider values ---
+const sliders = document.querySelectorAll('input[type="range"]');
+
+function getImpactScores(){
+  const v = Object.fromEntries([...sliders].map(s => [s.id, +s.value]));
+  const addedOfficers = v.staffing || 0;
+  const addedCSOs = v.cso || 0;
+
+  // Fractional reductions (simple example logic)
+  let violent_frac = -0.008 * addedOfficers - 0.07 * (v.tech/100) - 0.01*(v.youth/100) + 0.02*(v.liquor/100);
+  let property_frac = -0.004*addedOfficers -0.002*addedCSOs -0.10*(v.lighting/100) -0.01*(v.tech/100) + -0.03*(v.liquor/100);
+  let fraud_frac = -0.002*addedOfficers -0.01*(v.tech/100) -0.02*(v.youth/100);
+  let disorder_frac = -0.01*addedCSOs -0.03*(v.youth/100) -0.02*(v.lighting/100);
+
+  function clamp(x){ return Math.max(-0.8, Math.min(0.8, x)); }
+  violent_frac = clamp(violent_frac); property_frac = clamp(property_frac);
+  fraud_frac = clamp(fraud_frac); disorder_frac = clamp(disorder_frac);
+
+  const violent_proj = Math.round(baseData.violent*(1+violent_frac));
+  const property_proj = Math.round(baseData.property*(1+property_frac));
+  const fraud_proj = Math.round(baseData.fraud*(1+fraud_frac));
+  const disorder_proj = Math.round(baseData.disorder*(1+disorder_frac));
+
+  return { violent:violent_proj, property:property_proj, fraud:fraud_proj, disorder:disorder_proj,
+           violent_frac, property_frac, fraud_frac, disorder_frac };
+}
+
+function updateChart(){
+  const impacts = getImpactScores();
+  chart.data.datasets[0].data = [impacts.violent, impacts.property, impacts.fraud, impacts.disorder];
+  chart.data.datasets[0].backgroundColor = getBarColors(impacts);
+  chart.update();
+
+  // Update cost estimate
+  const staffingCost = (document.getElementById('staffing').value*150000 + document.getElementById('cso').value*100000).toLocaleString();
+  document.getElementById('cost-estimate').innerText = `Estimated Additional Staffing Cost: $${staffingCost}`;
+}
+
+function getBarColors(impacts){
+  const keys = ['violent','property','fraud','disorder'];
+  return keys.map(k=>{
+    const reduction = 1 - impacts[k]/baseData[k];
+    if(reduction>=0.30) return '#00c853';
+    if(reduction>=0.10) return '#ffd600';
+    return '#ff3d00';
+  });
+}
+
+// Attach slider listeners
+sliders.forEach(s=>s.addEventListener('input', updateChart));
+updateChart();
+
+// --- CSV Upload logic ---
+const MAPPING = {
+  violent: ['homicide','murder','rape','sexual','robbery','assault','kidnap','abduct','human trafficking'],
+  fraud: ['fraud','credit card','atm','identity','impersonation','wire fraud','computer','embezzlement','forgery','counterfeit','extortion'],
+  property: ['burglary','larceny','theft','motor vehicle theft','vehicle theft','arson','stolen property','shoplifting'],
+  other: []
+};
+function norm(s){ return (s||'').toString().toLowerCase(); }
+function aggregateLEARCAT(rows){
+  const keys = rows.length ? Object.keys(rows[0]) : [];
+  const offenseFields = keys.filter(k => /offense|offense_name|offense_type/i.test(k));
+  const countFields = keys.filter(k => /actual|count|incidents|numb/i.test(k));
+  if(offenseFields.length===0||countFields.length===0){console.warn('CSV format not recognized');return null;}
+  const offenseKey = offenseFields[0]; const countKey = countFields[0];
+  const totals = {violent:0, property:0, fraud:0, other:0};
+  rows.forEach(r=>{
+    const name=norm(r[offenseKey]);
+    const count = r[countKey]?parseInt(r[countKey].toString().replace(/[, ]/g,''))||0:0;
+    let matched=false;
+    for(const category of ['violent','fraud','property']){
+      for(const pat of MAPPING[category]){
+        if(name.indexOf(pat)!==-1){totals[category]+=count;matched=true;break;}
+      }
+      if(matched) break;
+    }
+    if(!matched) totals.other+=count;
+  });
+  return totals;
+}
+
+document.getElementById('learcatUpload').addEventListener('change', function(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  document.getElementById('learnote').innerText = `Parsing ${file.name}...`;
+  Papa.parse(file,{header:true,skipEmptyLines:true,
+    complete:function(results){
+      const rows=results.data; const totals=aggregateLEARCAT(rows);
+      if(!totals){document.getElementById('learnote').innerText='CSV parse succeeded but format not recognized.';return;}
+      baseData.violent=totals.violent||baseData.violent;
+      baseData.property=totals.property||baseData.property;
+      baseData.fraud=totals.fraud||baseData.fraud;
+      baseData.disorder=totals.other||baseData.disorder;
+      document.getElementById('learnote').innerText=`Baselines seeded from ${file.name}. Violent:${baseData.violent}, Property:${baseData.property}, Fraud:${baseData.fraud}, Other:${baseData.disorder}.`;
+      updateChart();
+    },
+    error:function(err){document.getElementById('learnote').innerText='CSV parse error';console.error(err);}
+  });
+});
+
+// --- Generate button ---
+document.getElementById('generateBtn').addEventListener('click', ()=>{
+  const impacts = getImpactScores();
+  const proposalText = `
+Proposal: RPD Crime Reduction Interventions
+
+1. Additional Officers: ${document.getElementById('staffing').value} → Violent/Property/Fraud/Other impact
+2. Additional CSOs: ${document.getElementById('cso').value} → Property/Other impact
+3. Tech Investment: ${document.getElementById('tech').value}% → Violent/Fraud impact
+4. Street Lighting: ${document.getElementById('lighting').value}% → Property/Other
+5. Youth Programs: ${document.getElementById('youth').value}% → Violent/Fraud/Other
+6. Liquor Store Adjustment: ${document.getElementById('liquor').value}% → Violent/Property impact
+
+Projected incidents per year after interventions:
+Violent Crimes: ${impacts.violent}
+Property Crimes: ${impacts.property}
+Fraud & Financial: ${impacts.fraud}
+Other/Disorder: ${impacts.disorder}
+
+Estimated additional staffing cost: ${document.getElementById('cost-estimate').innerText.replace('Estimated Additional Staffing Cost: ','')}
+Source: 2023 LEARCAT estimates, Olmsted County, MN
+
+Timeline, budget, and citations can be added in a formal proposal document.
+`;
+  alert(proposalText);
 });
 </script>
 
