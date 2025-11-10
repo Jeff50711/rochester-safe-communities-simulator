@@ -144,4 +144,81 @@ function updateDashboard() {
   // Color mapping
   const baselineData = getBaselineData();
   const colors = projData.map((val,i)=>{
-    const reduction = (baselineData[i]-va
+    const reduction = (baselineData[i]-val)/baselineData[i];
+    return reduction>=0.25?'#2ECC71':reduction>=0.10?'#F1C40F':'#E74C3C';
+  });
+
+  crimeChart.data.datasets[1].data = projData;
+  crimeChart.data.datasets[1].backgroundColor = colors;
+  crimeChart.update();
+
+  // Cost
+  const cost = parseInt(sliders.staffing.value)*150000 + parseInt(sliders.cso.value)*100000;
+  costNode.textContent = `$${cost.toLocaleString()}`;
+
+  // Overall reduction %
+  const totalBase = baselineData.reduce((a,b)=>a+b,0);
+  const totalProj = projData.reduce((a,b)=>a+b,0);
+  const overallRed = ((totalBase-totalProj)/totalBase*100).toFixed(1);
+  projNode.textContent = `${overallRed}%`;
+}
+
+// --- PDF export ---
+document.getElementById('generatePDFBtn').addEventListener('click', async ()=>{
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation:'portrait',unit:'pt',format:'a4' });
+  const margin = 40; let y=margin;
+
+  doc.setFontSize(18); doc.setTextColor('#0a3a6c');
+  doc.text('RPD Strategic Interventions Tool — Proposal', margin, y); y+=25;
+  doc.setFontSize(11); doc.setTextColor('#22314a');
+  doc.text(`Generated: ${new Date().toLocaleDateString()}`, margin, y); y+=20;
+
+  // Interventions
+  const proj = computeProjected();
+  const s = sliders.staffing.value, c = sliders.cso.value, t = sliders.tech.value;
+  const L = sliders.lighting.value, yth = sliders.youth.value, p = sliders.place.value;
+  const cost = s*150000+c*100000;
+
+  doc.setFontSize(12); doc.setFont('helvetica','normal');
+  const lines = [
+    `Additional Sworn Officers: ${s}`,
+    `Additional CSOs: ${c}`,
+    `Technology Investment: ${t}%`,
+    `Street Lighting Improvements: ${L}%`,
+    `Youth & Community Programs: ${yth}%`,
+    `Place Management & Business Compliance: ${p}%`,
+    `Estimated Additional Staffing Cost: $${cost.toLocaleString()}`,
+    '',
+    'Projected Annual Incidents (Post-Intervention):',
+    `Violent: Assault ${proj.violent.assault}, Robbery ${proj.violent.robbery}, Homicide ${proj.violent.homicide}, Sexual ${proj.violent.sexual}`,
+    `Property: Burglary ${proj.property.burglary}, Larceny ${proj.property.larceny}, Vehicle ${proj.property.vehicle}, Arson ${proj.property.arson}`,
+    `Fraud: Credit ${proj.fraud.credit}, Identity ${proj.fraud.identity}, Embezzlement ${proj.fraud.embezzle}`,
+    `Disorder: Vandalism ${proj.disorder.vandalism}, Intoxication ${proj.disorder.intoxication}, Disorderly ${proj.disorder.disorderly}`,
+  ];
+  lines.forEach(line=>{doc.text(line,margin,y);y+=15;});
+
+  // Add chart
+  const canvas = document.getElementById('crimeChart');
+  const img = canvas.toDataURL('image/png',1.0);
+  doc.addImage(img,'PNG',margin,y,doc.internal.pageSize.getWidth()-margin*2,200); y+=210;
+
+  // References
+  doc.setFontSize(12); doc.setTextColor('#0a3a6c');
+  doc.text('References & Evidence:',margin,y); y+=15;
+  doc.setFontSize(10); doc.setTextColor('#22314a');
+  const refs = [
+    'Branas CC, et al. (2018). Vacant-lot greening RCT — reductions in violence. PNAS.',
+    'Welsh BC & Farrington DP (2008). Lighting meta-analysis — crime reductions.',
+    'Braga AA & Weisburd DL (2010). Hot-spots policing meta-analysis — targeted policing reduces crime.',
+    'Livingston M (2011). Alcohol outlet density and violence; compliance interventions reduce harm.',
+    'Farrington DP (2006). Youth prevention programs — durable crime reductions.'
+  ];
+  refs.forEach(r=>{doc.text(`• ${r}`,margin,y);y+=12;});
+
+  doc.save('RPD_Strategic_Interventions_Proposal.pdf');
+});
+
+// --- Attach slider listeners + init ---
+Object.values(sliders).forEach(s=>s.addEventListener('input',updateDashboard));
+updateDashboard();
