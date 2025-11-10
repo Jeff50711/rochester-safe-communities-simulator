@@ -1,100 +1,120 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>RPD Strategic Interventions Tool</title>
 
-  <!-- Fonts & Styles -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Styles -->
   <link rel="stylesheet" href="style.css" />
+
+  <!-- Libraries -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 </head>
-
 <body>
   <header class="rpd-header">
-    <h1>RPD Strategic Interventions Tool</h1>
-    <h2>Evidence-Based Policing Impact Model</h2>
+    <div class="container">
+      <div class="title-area">
+        <h1>RPD Strategic Interventions Tool</h1>
+        <p class="subtitle">Evidence-based simulation for Rochester, MN — baseline: LEARCAT/NIBRS-estimated data</p>
+      </div>
+      <div class="summary">
+        <div class="summary-card">
+          <div class="card-label">Estimated Cost</div>
+          <div id="cost-estimate" class="card-value">$0</div>
+        </div>
+        <div class="summary-card">
+          <div class="card-label">Projected Reduction</div>
+          <div id="proj-reduction" class="card-value">0%</div>
+        </div>
+      </div>
+    </div>
   </header>
 
-  <main>
+  <main class="main">
     <section class="intro">
       <p>
-        This tool allows the Rochester Police Department and city leaders to visualize the projected impact of key
-        strategic interventions on violent crime, property crime, fraud, and disorder.  
-        Adjust the sliders to simulate investment levels, informed by peer-reviewed research and national data.
+        Use the sliders to model intervention intensity and see projected impacts on Violent, Property,
+        Fraud/Financial, and Disorder incidents. Upload LEARCAT/NIBRS CSV to seed real baselines.
       </p>
     </section>
 
     <section class="dashboard">
-      <div class="controls">
-        <h3>Operational Staffing</h3>
-        <label for="staffing">
-          Additional Sworn Officers:
-          <input type="range" id="staffing" min="0" max="20" value="0" step="1" />
-          <span id="staffing-value"></span>
+      <aside class="controls">
+        <h3>Interventions</h3>
+
+        <label>Additional Sworn Officers
+          <input id="staffing" type="range" min="0" max="20" value="0" />
+          <span id="staffing-value" class="val">0</span>
         </label>
 
-        <label for="cso">
-          Additional Community Service Officers (CSOs):
-          <input type="range" id="cso" min="0" max="15" value="0" step="1" />
-          <span id="cso-value"></span>
+        <label>Additional Community Service Officers (CSOs)
+          <input id="cso" type="range" min="0" max="15" value="0" />
+          <span id="cso-value" class="val">0</span>
         </label>
 
-        <h3>Strategic Investments</h3>
-        <label for="tech">
-          Technology Investments (%):
-          <input type="range" id="tech" min="0" max="100" value="0" step="5" />
-          <span id="tech-value"></span>
+        <label>Technology Investments (%)
+          <input id="tech" type="range" min="0" max="100" value="0" step="5" />
+          <span id="tech-value" class="val">0%</span>
         </label>
 
-        <label for="lighting">
-          Street Lighting Improvements (%):
-          <input type="range" id="lighting" min="0" max="100" value="0" step="5" />
-          <span id="lighting-value"></span>
+        <label>Street Lighting Improvements (%)
+          <input id="lighting" type="range" min="0" max="100" value="0" step="5" />
+          <span id="lighting-value" class="val">0%</span>
         </label>
 
-        <label for="youth">
-          Youth & Community Programs (%):
-          <input type="range" id="youth" min="0" max="100" value="0" step="5" />
-          <span id="youth-value"></span>
+        <label>Youth & Community Programs (%)
+          <input id="youth" type="range" min="0" max="100" value="0" step="5" />
+          <span id="youth-value" class="val">0%</span>
         </label>
 
-        <label for="place">
-          Place Management & Business Compliance (%):
-          <input type="range" id="place" min="0" max="100" value="0" step="5" />
-          <span id="place-value"></span>
+        <label>Place Management & Business Compliance (%)
+          <input id="place" type="range" min="0" max="100" value="0" step="5" />
+          <span id="place-value" class="val">0%</span>
         </label>
 
-        <div id="cost-estimate" class="cost"></div>
+        <div class="file-row">
+          <label class="file-label">Upload LEARCAT CSV (optional)</label>
+          <input id="learcatUpload" type="file" accept=".csv" />
+          <div id="learnote" class="note">No file uploaded — using baseline estimates.</div>
+        </div>
 
         <button id="generateBtn" class="generate-btn">Generate Intervention Summary</button>
-      </div>
+      </aside>
 
-      <div class="chart-container">
+      <section class="chart-panel">
         <canvas id="crimeChart"></canvas>
-      </div>
+      </section>
     </section>
 
-    <section class="learcat">
-      <h3>Optional: Upload LEARCAT / NIBRS Data</h3>
-      <p>
-        You can upload a CSV from <a href="https://learcat.bjs.ojp.gov/" target="_blank">LEARCAT</a> (Olmsted County or Minnesota statewide) to replace baseline data.
-      </p>
-      <input type="file" id="learcatUpload" accept=".csv" />
-      <div id="learnote"></div>
+    <!-- References (Option B: fully visible, styled) -->
+    <section class="references">
+      <h3>References & Evidence</h3>
+      <ul>
+        <li><strong>Branas, C. C., et al. (2018).</strong> Citywide randomized trial of vacant-lot greening reduced violence. <em>PNAS</em>.</li>
+        <li><strong>Welsh, B. C., & Farrington, D. P. (2008).</strong> Systematic review: improved street lighting reduces crime. <em>Journal of Experimental Criminology</em>.</li>
+        <li><strong>Braga, A. A., & Weisburd, D. (2010).</strong> Hot-spots policing meta-analysis: targeted enforcement reduces violent & property crime. <em>Criminology</em>.</li>
+        <li><strong>Livingston, M. (2011).</strong> Alcohol outlet density associated with violence; licensing/compliance reduces harm. <em>Addiction</em>.</li>
+        <li><strong>Farrington, D. P. (2006).</strong> Systematic reviews/meta-analyses for youth prevention programs and long-term crime reduction. <em>Campbell Reviews</em>.</li>
+        <li><strong>Compton, M. T., et al. (2019).</strong> Police interventions and persons with mental illness — co-responder models. <em>Psychiatric Services</em>.</li>
+        <li><strong>Lum, C., et al. (2020).</strong> Technology in policing: limits and evidence. <em>Criminology & Public Policy</em>.</li>
+      </ul>
+      <p class="ref-note">These references were used to set conservative, research-aligned impact parameters in the model. For formal proposals, cite original articles and attach detailed annexes.</p>
     </section>
-
-    <footer class="rpd-footer">
-      <p>
-        <strong>RPD Strategic Interventions Tool</strong> | Rochester Police Department  
-        <br />
-        Built using Chart.js, PapaParse, and evidence-based policing research.
-      </p>
-    </footer>
   </main>
 
+  <footer class="rpd-footer">
+    <div class="container">
+      <div>RPD Strategic Interventions Tool — Rochester Police Department</div>
+      <div class="small">Built with Chart.js & PapaParse • Evidence-informed model</div>
+    </div>
+  </footer>
+
+  <!-- App script -->
   <script src="script.js"></script>
 </body>
 </html>
