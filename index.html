@@ -14,6 +14,8 @@
   <!-- Libraries -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
   <header class="rpd-header">
@@ -38,8 +40,7 @@
   <main class="main">
     <section class="intro">
       <p>
-        Use the sliders to model intervention intensity and see projected impacts on Violent, Property,
-        Fraud/Financial, and Disorder incidents. Upload LEARCAT/NIBRS CSV to seed real baselines.
+        Use the sliders to model intervention intensity and see projected impacts on granular crime categories.
       </p>
     </section>
 
@@ -84,6 +85,9 @@
         </div>
 
         <button id="generateBtn" class="generate-btn">Generate Intervention Summary</button>
+        <button id="generatePDFBtn" class="generate-btn" style="margin-top:8px;background:#0a3a6c;color:#fff;">
+          Export Proposal + Chart as PDF
+        </button>
       </aside>
 
       <section class="chart-panel">
@@ -91,19 +95,15 @@
       </section>
     </section>
 
-    <!-- References (Option B: fully visible, styled) -->
     <section class="references">
       <h3>References & Evidence</h3>
       <ul>
-        <li><strong>Branas, C. C., et al. (2018).</strong> Citywide randomized trial of vacant-lot greening reduced violence. <em>PNAS</em>.</li>
-        <li><strong>Welsh, B. C., & Farrington, D. P. (2008).</strong> Systematic review: improved street lighting reduces crime. <em>Journal of Experimental Criminology</em>.</li>
-        <li><strong>Braga, A. A., & Weisburd, D. (2010).</strong> Hot-spots policing meta-analysis: targeted enforcement reduces violent & property crime. <em>Criminology</em>.</li>
-        <li><strong>Livingston, M. (2011).</strong> Alcohol outlet density associated with violence; licensing/compliance reduces harm. <em>Addiction</em>.</li>
-        <li><strong>Farrington, D. P. (2006).</strong> Systematic reviews/meta-analyses for youth prevention programs and long-term crime reduction. <em>Campbell Reviews</em>.</li>
-        <li><strong>Compton, M. T., et al. (2019).</strong> Police interventions and persons with mental illness — co-responder models. <em>Psychiatric Services</em>.</li>
-        <li><strong>Lum, C., et al. (2020).</strong> Technology in policing: limits and evidence. <em>Criminology & Public Policy</em>.</li>
+        <li><strong>Branas, C. C., et al. (2018).</strong> Vacant-lot greening reduced violence. <em>PNAS</em>.</li>
+        <li><strong>Welsh, B. C., & Farrington, D. P. (2008).</strong> Improved street lighting reduces crime. <em>Journal of Experimental Criminology</em>.</li>
+        <li><strong>Braga, A. A., & Weisburd, D. (2010).</strong> Hot-spots policing reduces violent & property crime. <em>Criminology</em>.</li>
+        <li><strong>Livingston, M. (2011).</strong> Alcohol outlet density associated with violence. <em>Addiction</em>.</li>
+        <li><strong>Farrington, D. P. (2006).</strong> Youth prevention programs reduce long-term crime. <em>Campbell Reviews</em>.</li>
       </ul>
-      <p class="ref-note">These references were used to set conservative, research-aligned impact parameters in the model. For formal proposals, cite original articles and attach detailed annexes.</p>
     </section>
   </main>
 
@@ -114,7 +114,6 @@
     </div>
   </footer>
 
-  <!-- App script -->
   <script src="script.js"></script>
 </body>
 </html>
