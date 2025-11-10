@@ -1,66 +1,100 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RPD Strategic Interventions Tool</title>
-<link rel="stylesheet" href="style.css">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RPD Strategic Interventions Tool</title>
+
+  <!-- Fonts & Styles -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 </head>
+
 <body>
+  <header class="rpd-header">
+    <h1>RPD Strategic Interventions Tool</h1>
+    <h2>Evidence-Based Policing Impact Model</h2>
+  </header>
 
-<header>
-  <h1>RPD Strategic Interventions Tool</h1>
-  <p>Baseline: 2023 LEARCAT estimates, Olmsted County, MN</p>
-</header>
+  <main>
+    <section class="intro">
+      <p>
+        This tool allows the Rochester Police Department and city leaders to visualize the projected impact of key
+        strategic interventions on violent crime, property crime, fraud, and disorder.  
+        Adjust the sliders to simulate investment levels, informed by peer-reviewed research and national data.
+      </p>
+    </section>
 
-<div id="dashboard">
+    <section class="dashboard">
+      <div class="controls">
+        <h3>Operational Staffing</h3>
+        <label for="staffing">
+          Additional Sworn Officers:
+          <input type="range" id="staffing" min="0" max="20" value="0" step="1" />
+          <span id="staffing-value"></span>
+        </label>
 
-  <div class="control-panel">
-    <h2>Interventions</h2>
+        <label for="cso">
+          Additional Community Service Officers (CSOs):
+          <input type="range" id="cso" min="0" max="15" value="0" step="1" />
+          <span id="cso-value"></span>
+        </label>
 
-    <div class="slider-container">
-      <label for="staffing">Additional Officers</label>
-      <input type="range" id="staffing" min="0" max="10" value="0">
-    </div>
-    <div class="slider-container">
-      <label for="cso">Additional CSOs</label>
-      <input type="range" id="cso" min="0" max="10" value="0">
-    </div>
-    <div class="slider-container">
-      <label for="tech">Technology Investments (%)</label>
-      <input type="range" id="tech" min="0" max="100" value="0">
-    </div>
-    <div class="slider-container">
-      <label for="lighting">Street Lighting (%)</label>
-      <input type="range" id="lighting" min="0" max="100" value="0">
-    </div>
-    <div class="slider-container">
-      <label for="youth">Youth & Community Programs (%)</label>
-      <input type="range" id="youth" min="0" max="100" value="0">
-    </div>
-    <div class="slider-container">
-      <label for="liquor">Reduce Liquor Outlets (%)</label>
-      <input type="range" id="liquor" min="0" max="100" value="0">
-    </div>
+        <h3>Strategic Investments</h3>
+        <label for="tech">
+          Technology Investments (%):
+          <input type="range" id="tech" min="0" max="100" value="0" step="5" />
+          <span id="tech-value"></span>
+        </label>
 
-    <button id="generateBtn">Generate Proposal</button>
-    <div id="cost-estimate"></div>
+        <label for="lighting">
+          Street Lighting Improvements (%):
+          <input type="range" id="lighting" min="0" max="100" value="0" step="5" />
+          <span id="lighting-value"></span>
+        </label>
 
-    <div style="margin-top:16px;">
-      <label for="learcatUpload">Upload LEARCAT CSV (Olmsted 2023)</label>
-      <input id="learcatUpload" type="file" accept=".csv" />
-      <div id="learnote">No file uploaded → using estimated baselines.</div>
-    </div>
-  </div>
+        <label for="youth">
+          Youth & Community Programs (%):
+          <input type="range" id="youth" min="0" max="100" value="0" step="5" />
+          <span id="youth-value"></span>
+        </label>
 
-  <div class="chart-panel">
-    <canvas id="impactChart"></canvas>
-  </div>
+        <label for="place">
+          Place Management & Business Compliance (%):
+          <input type="range" id="place" min="0" max="100" value="0" step="5" />
+          <span id="place-value"></span>
+        </label>
 
-</div>
+        <div id="cost-estimate" class="cost"></div>
 
-<script src="script.js"></script>
+        <button id="generateBtn" class="generate-btn">Generate Intervention Summary</button>
+      </div>
+
+      <div class="chart-container">
+        <canvas id="crimeChart"></canvas>
+      </div>
+    </section>
+
+    <section class="learcat">
+      <h3>Optional: Upload LEARCAT / NIBRS Data</h3>
+      <p>
+        You can upload a CSV from <a href="https://learcat.bjs.ojp.gov/" target="_blank">LEARCAT</a> (Olmsted County or Minnesota statewide) to replace baseline data.
+      </p>
+      <input type="file" id="learcatUpload" accept=".csv" />
+      <div id="learnote"></div>
+    </section>
+
+    <footer class="rpd-footer">
+      <p>
+        <strong>RPD Strategic Interventions Tool</strong> | Rochester Police Department  
+        <br />
+        Built using Chart.js, PapaParse, and evidence-based policing research.
+      </p>
+    </footer>
+  </main>
+
+  <script src="script.js"></script>
 </body>
 </html>
