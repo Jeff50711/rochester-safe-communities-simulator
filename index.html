@@ -1,119 +1,107 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>RPD Strategic Interventions Tool</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>RPD Strategic Interventions Tool</title>
 
-  <!-- Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
-  <!-- Styles -->
-  <link rel="stylesheet" href="style.css" />
+<!-- Styles -->
+<link rel="stylesheet" href="style.css" />
 
-  <!-- Libraries -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<!-- Libraries -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
-  <header class="rpd-header">
-    <div class="container">
-      <div class="title-area">
-        <h1>RPD Strategic Interventions Tool</h1>
-        <p class="subtitle">Evidence-based simulation for Rochester, MN — baseline: LEARCAT/NIBRS-estimated data</p>
+
+<header class="rpd-header">
+  <div class="container">
+    <div class="title-area">
+      <h1>RPD Strategic Interventions Tool</h1>
+      <p class="subtitle">Evidence-based simulation for Rochester, MN — baseline: NIBRS/LEARCAT data</p>
+    </div>
+    <div class="summary">
+      <div class="summary-card">
+        <div class="card-label">Estimated Cost</div>
+        <div id="cost-estimate" class="card-value">$0</div>
       </div>
-      <div class="summary">
-        <div class="summary-card">
-          <div class="card-label">Estimated Cost</div>
-          <div id="cost-estimate" class="card-value">$0</div>
-        </div>
-        <div class="summary-card">
-          <div class="card-label">Projected Reduction</div>
-          <div id="proj-reduction" class="card-value">0%</div>
-        </div>
+      <div class="summary-card">
+        <div class="card-label">Projected Reduction</div>
+        <div id="proj-reduction" class="card-value">0%</div>
       </div>
     </div>
-  </header>
+  </div>
+</header>
 
-  <main class="main">
-    <section class="intro">
-      <p>
-        Use the sliders to model intervention intensity and see projected impacts on granular crime categories.
-      </p>
-    </section>
+<main class="main">
+<section class="dashboard">
+  <aside class="controls">
+    <h3>Interventions</h3>
 
-    <section class="dashboard">
-      <aside class="controls">
-        <h3>Interventions</h3>
+    <label>Additional Sworn Officers
+      <input id="staffing" type="range" min="0" max="20" value="0" />
+      <span id="staffing-value" class="val">0</span>
+    </label>
 
-        <label>Additional Sworn Officers
-          <input id="staffing" type="range" min="0" max="20" value="0" />
-          <span id="staffing-value" class="val">0</span>
-        </label>
+    <label>Additional CSOs
+      <input id="cso" type="range" min="0" max="15" value="0" />
+      <span id="cso-value" class="val">0</span>
+    </label>
 
-        <label>Additional Community Service Officers (CSOs)
-          <input id="cso" type="range" min="0" max="15" value="0" />
-          <span id="cso-value" class="val">0</span>
-        </label>
+    <label>Technology Investments (%)
+      <input id="tech" type="range" min="0" max="100" value="0" step="5" />
+      <span id="tech-value" class="val">0%</span>
+    </label>
 
-        <label>Technology Investments (%)
-          <input id="tech" type="range" min="0" max="100" value="0" step="5" />
-          <span id="tech-value" class="val">0%</span>
-        </label>
+    <label>Street Lighting Improvements (%)
+      <input id="lighting" type="range" min="0" max="100" value="0" step="5" />
+      <span id="lighting-value" class="val">0%</span>
+    </label>
 
-        <label>Street Lighting Improvements (%)
-          <input id="lighting" type="range" min="0" max="100" value="0" step="5" />
-          <span id="lighting-value" class="val">0%</span>
-        </label>
+    <label>Youth & Community Programs (%)
+      <input id="youth" type="range" min="0" max="100" value="0" step="5" />
+      <span id="youth-value" class="val">0%</span>
+    </label>
 
-        <label>Youth & Community Programs (%)
-          <input id="youth" type="range" min="0" max="100" value="0" step="5" />
-          <span id="youth-value" class="val">0%</span>
-        </label>
+    <label>Place Management & Compliance (%)
+      <input id="place" type="range" min="0" max="100" value="0" step="5" />
+      <span id="place-value" class="val">0%</span>
+    </label>
 
-        <label>Place Management & Business Compliance (%)
-          <input id="place" type="range" min="0" max="100" value="0" step="5" />
-          <span id="place-value" class="val">0%</span>
-        </label>
+    <button id="generateBtn" class="generate-btn">Generate Summary</button>
+    <button id="generatePDFBtn" class="generate-btn" style="margin-top:8px;background:#0a3a6c;color:#fff;">
+      Export Proposal + Chart as PDF
+    </button>
+  </aside>
 
-        <div class="file-row">
-          <label class="file-label">Upload LEARCAT CSV (optional)</label>
-          <input id="learcatUpload" type="file" accept=".csv" />
-          <div id="learnote" class="note">No file uploaded — using baseline estimates.</div>
-        </div>
+  <section class="chart-panel">
+    <canvas id="crimeChart"></canvas>
+  </section>
+</section>
 
-        <button id="generateBtn" class="generate-btn">Generate Intervention Summary</button>
-        <button id="generatePDFBtn" class="generate-btn" style="margin-top:8px;background:#0a3a6c;color:#fff;">
-          Export Proposal + Chart as PDF
-        </button>
-      </aside>
+<section class="references">
+<h3>References & Evidence</h3>
+<ul>
+<li>Branas CC, et al. (2018). Vacant-lot greening reduced violence. <em>PNAS</em>.</li>
+<li>Welsh BC & Farrington DP (2008). Lighting meta-analysis — crime reductions.</li>
+<li>Braga AA & Weisburd DL (2010). Hot-spots policing reduces violent & property crime.</li>
+<li>Livingston M (2011). Alcohol outlet density & compliance interventions reduce harm.</li>
+<li>Farrington DP (2006). Youth prevention programs — durable crime reductions.</li>
+</ul>
+</section>
+</main>
 
-      <section class="chart-panel">
-        <canvas id="crimeChart"></canvas>
-      </section>
-    </section>
+<footer class="rpd-footer">
+<div class="container">
+<div>RPD Strategic Interventions Tool — Rochester Police Department</div>
+<div class="small">Built with Chart.js • Evidence-informed model</div>
+</div>
+</footer>
 
-    <section class="references">
-      <h3>References & Evidence</h3>
-      <ul>
-        <li><strong>Branas, C. C., et al. (2018).</strong> Vacant-lot greening reduced violence. <em>PNAS</em>.</li>
-        <li><strong>Welsh, B. C., & Farrington, D. P. (2008).</strong> Improved street lighting reduces crime. <em>Journal of Experimental Criminology</em>.</li>
-        <li><strong>Braga, A. A., & Weisburd, D. (2010).</strong> Hot-spots policing reduces violent & property crime. <em>Criminology</em>.</li>
-        <li><strong>Livingston, M. (2011).</strong> Alcohol outlet density associated with violence. <em>Addiction</em>.</li>
-        <li><strong>Farrington, D. P. (2006).</strong> Youth prevention programs reduce long-term crime. <em>Campbell Reviews</em>.</li>
-      </ul>
-    </section>
-  </main>
-
-  <footer class="rpd-footer">
-    <div class="container">
-      <div>RPD Strategic Interventions Tool — Rochester Police Department</div>
-      <div class="small">Built with Chart.js & PapaParse • Evidence-informed model</div>
-    </div>
-  </footer>
-
-  <script src="script.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
